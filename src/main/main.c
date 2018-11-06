@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 #include <pthread.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -2241,20 +2240,3 @@ pthread_cond_broadcast(&(myoso->cond[COND_FILE_NAME]), &(myoso->mut[MUT_FILE_NAM
 pthread_mutex_unlock(&(myoso->mut[MUT_FILE_NAME]));
 */
 
-
-
-
-
-
-
-
-
-
-=======
-#include <stdio.h>
-int main(int argc,char ** argv)
-{
-	printf("hello git\n");
-	return 0;
-}
->>>>>>> bbc98cebfece5baa04e197092a7daf085426729c
