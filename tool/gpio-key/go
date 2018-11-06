@@ -1,0 +1,5 @@
+#!/bin/bash
+/usr/local/arm/arm-2014.05/bin/arm-none-linux-gnueabi-gcc -o keytest keytest.c
+cp keytest ~/nfs-9g45/newbin/oso-dv2.1/OL_ACQ/
+cp keytest /home/zhangwp/oso-dv2.1/newboot/newjffs2/mtd_zhangwp/OL_ACQ/
+

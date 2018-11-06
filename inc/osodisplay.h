@@ -1,0 +1,1 @@
+extern int osodisplay(oso * myoso);//作为一个线程单独运行,控制oso内容显示

@@ -1,0 +1,1 @@
+extern inline int readfromsocket(char * buffer,int needwritebyte,int fid);

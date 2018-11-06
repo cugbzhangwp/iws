@@ -1,0 +1,7 @@
+#define OSO_SSCDEV "/dev/zwp_ssc0"
+#define OSO_UBLOX_GPS "/dev/ttyS1"
+#define OSO_BATT_LTC2943 "/dev/i2c-0"
+#define OSO_KEYS "/dev/keys0"
+#define OSO_FPGA_CONF "/dev/zwp_spi0.0"
+#define OSO_OLED "/dev/zwp_spi1.1"
+#define OSO_GPIO "/dev/gpioctl0"

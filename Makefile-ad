@@ -1,0 +1,36 @@
+vpath %.c src/ad
+#$(patsubst %.c,%.o,$(wildcard *.c))
+vpath %.h inc inc/net inc/sys inc/lib inc/lib/cJSON
+Objects += ads1256_test.o
+#Objects += gpio-key.o
+
+
+#CROSS_COMPILE=/usr/local/arm/arm-2014.05/bin/arm-none-linux-gnueabi-
+#CROSS_COMPILE=/usr/local/arm/arm-2007q3/bin/arm-none-linux-gnueabi-
+#CROSS_COMPILE=/usr/local/arm/arm-linaro/bin/arm-linux-gnueabihf-
+CROSS_COMPILE=arm-none-linux-gnueabi-
+AS=$(CROSS_COMPILE)as
+CC=$(CROSS_COMPILE)gcc
+LD=$(CROSS_COMPILE)ld
+NM= $(CROSS_COMPILE)nm
+SIZE=$(CROSS_COMPILE)size
+OBJCOPY=$(CROSS_COMPILE)objcopy
+OBJDUMP=$(CROSS_COMPILE)objdump
+CFlag=-Os 
+#CFlag=-v -Wall -Os -mfpu=vfp
+# -mfloat-abi=hard
+#-mfloat-abi=soft
+#c编译隐含规则参数
+CFLAGS+= -I ./inc -lpthread -lbcm2835 -lm
+TARGET=app-ad
+#LIBS=-lpthread -lm
+LIBS +=  -lbcm2835 -lm -lpthread
+LDFLAGS=-L.
+$(TARGET):$(Objects)
+	#lpr -p $?  gcc -M main.c
+	$(CC)  $(CFlag) -o $@ $(Objects) $(LIBS)    
+ads1256_test.o:
+
+.PHONY : clean
+clean :
+	-rm app-ad $(Objects)

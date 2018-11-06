@@ -1,0 +1,6 @@
+#define CMD_PAK_SIZE sizeof(cmd_s)
+#define PARA_PAK_SIZE sizeof(para_s)
+#define INFO_PAK_SIZE sizeof(oso_n_info_s)
+#define ABL_TX_CMD_SIZE sizeof(ABL_TX_CMD)
+#define ABL_TX_CMD_M2_SIZE sizeof(ABL_TX_CMD_M2)
+#define FPGAREG_S_SIZE sizeof(FPGAREG_S)

@@ -1,0 +1,139 @@
+VPATH=src/file_io\
+	:src\
+	:src/ad\
+	:src/net\
+	:src/proc\
+	:src/algorithm\
+	:src/conf\
+	:src/io\
+	:src/device\
+	:src/device/iic/oled\
+	:src/device/iic/relay\
+	:src/device/uart/gps\
+	:src/device/uart/ahrs\
+	:src/fpga\
+	:src/system\
+	:src/common\
+	:src/main\
+	:src/sys\
+	:src/net
+
+VPATH += :src/conf
+VPATH += :src/ui
+VPATH += :src/lib/cJSON-master
+VPATH += :src/net/udp
+VPATH += :src/io/file
+VPATH += :src/device/iic/ltc2943
+VPATH += :src/device/iic
+VPATH += :src/net/cstp
+#vpath %.cpp src
+#$(patsubst %.c,%.o,$(wildcard *.c))
+vpath %.h inc inc/net inc/net/udp inc/net/cstp inc/sys inc/lib inc/lib/cJSON inc/device/iic inc/device/iic/oled inc/device/iic/relay inc/device/uart/gps inc/io/file
+
+#file_process.o
+Objects += main.o
+Objects += sysdebug.o
+Objects += readconf.o
+Objects += tcp_ui.o
+Objects += commonfun.o
+Objects += oled.o
+Objects += spi_rw.o
+#Objects += epoll_oled.o
+Objects += common_tcp.o
+Objects += tcp_frame.o
+Objects += cjson_Utils.o
+Objects += cjson.o
+Objects += ads1256_test.o
+Objects += time_geo.o
+Objects += alg.o
+Objects += DEV_Config.o
+Objects += OLED_Driver.o
+Objects += OLED_GUI.o
+Objects += oledmain.o
+Objects += font8.o
+Objects += font12.o
+Objects += font16.o
+Objects += font20.o
+Objects += font24.o
+Objects += pca9539_relay.o
+Objects += ublox.o
+Objects += hi219.o
+Objects += atcmd.o
+Objects += sd_data.o
+Objects += ltc2943.o
+Objects += i2crw.o
+Objects += cstp.o
+Objects += pcf8574.o
+Objects += device_mq.o
+Objects += filerw.o
+
+#Objects += gpio-key.o
+
+
+#CROSS_COMPILE=/usr/local/arm/arm-2014.05/bin/arm-none-linux-gnueabi-
+#CROSS_COMPILE=/usr/local/arm/arm-2007q3/bin/arm-none-linux-gnueabi-
+#CROSS_COMPILE=/usr/local/arm/arm-linaro/bin/arm-linux-gnueabihf-
+CROSS_COMPILE=arm-none-linux-gnueabi-
+AS=$(CROSS_COMPILE)as
+CC=$(CROSS_COMPILE)gcc
+LD=$(CROSS_COMPILE)ld
+NM= $(CROSS_COMPILE)nm
+SIZE=$(CROSS_COMPILE)size
+OBJCOPY=$(CROSS_COMPILE)objcopy
+OBJDUMP=$(CROSS_COMPILE)objdump
+#CFlag=-I./inc -I./inc/sys -I./inc/net -I./inc/net/udp  -I./inc/net/cstp -I./inc/device -I./inc/device/iic -I./inc/device/iic/oled -I./inc/device/iic/relay  -I./inc/device/uart/gps  -I./inc/io/file -I./inc/lib/cJSON -v -march=armv7 -mfloat-abi=softfp  -L/usr/local/arm/arm-none-linux-gnueabi/libc/usr/lib -L/Users/zhangwp/mycwork/rpi/wiringpi/lib -lpthread -lbcm2835 -lm
+CFlag=-I./inc -I./inc/sys -I./inc/net -I./inc/net/udp  -I./inc/net/cstp -I./inc/device -I./inc/device/iic -I./inc/device/iic/oled -I./inc/device/iic/relay  -I./inc/device/uart/gps  -I./inc/io/file -I./inc/lib/cJSON -v -march=armv7 -mfloat-abi=softfp  -L/usr/local/arm/arm-none-linux-gnueabi/libc/usr/lib -L/Users/zhangwp/mycwork/rpi/pi/lib -lpthread -lbcm2835 -lm
+#CFlag=-v -Wall -Os -mfpu=vfp
+# -mfloat-abi=hard
+#-mfloat-abi=soft
+#c编译隐含规则参数
+#CFLAGS+=
+CFLAGS+=-L/usr/local/arm/arm-none-linux-gnueabi/libc/usr/lib  -I./inc -I./inc/sys -I./inc/net  -I./inc/net/udp  -I./inc/net/cstp -I./inc/device  -I./inc/device/iic -I./inc/device/iic/oled -I./inc/device/iic/relay  -I./inc/device/uart/gps  -I./inc/io/file -I./inc/lib/cJSON -std=gnu99 -lpthread -lbcm2835 -lm -lwiringPi
+#CFLAGS+=-L/usr/local/arm/arm-none-linux-gnueabi/libc/usr/lib -L/Users/zhangwp/mycwork/rpi/wiringpi/lib -I./inc -I./inc/sys -I./inc/net  -I./inc/net/udp  -I./inc/net/cstp -I./inc/device  -I./inc/device/iic -I./inc/device/iic/oled -I./inc/device/iic/relay  -I./inc/device/uart/gps  -I./inc/io/file -I./inc/lib/cJSON -std=gnu99 -lpthread -lbcm2835 -lm -lwiringPi
+TARGET=app
+#LIBS=-lpthread -lm
+LIBS +=-lpthread -lbcm2835 -lm -lwiringPi
+LDFLAGS=-L.
+#OSOINCLUDES
+#OSOINCLUDES =-I /home/zhangwp/oso-dv2.1/abollo-oso/app-keeper/inc/net -I /home/zhangwp/oso-dv2.1/abollo-oso/app-keeper/inc -I /home/zhangwp/oso-dv2.1/abollo-oso/app-keeper/inc/sys
+#OSOINCLUDES += -I /home/zhangwp/oso-dv2.1/abollo-oso/app-keeper/inc/net
+$(TARGET):$(Objects)
+	#lpr -p $?  gcc -M main.c
+	#$(CC)  $(CFlag) $(OSOINCLUDES) $(LIBS)  $(LDFLAGS) -o $@ $(Objects)    
+	$(CC)  $(CFlag) $(OSOINCLUDES) -o $@ $(Objects) $(LIBS)
+	$(CC) -o piip ./src/net/tcp_client.c
+main.o:runconf.h
+sysdebug.o:sysdebug.h
+readconf.o:readconf.h
+tcp_ui.o:readconf.h
+commonfun.o:commonfun.h
+oled.o:oled.h
+spi_rw.o:spi_rw.h
+#epoll_oled.o:epoll_oled.h
+common_tcp.o:common_tcp.h
+cjson.o:cJSON.h
+tcp_frame.o:tcp_frame.h
+
+#gpio-key.o:gpio-key.h
+cjson_Utils.o:cJSON_Utils.h
+ads1256_test.o:
+time_geo.o:
+alg.o:alg.h
+DEV_Config.o:DEV_Config.h
+OLED_Driver.o:OLED_Driver.h
+OLED_GUI.o:OLED_GUI.h
+oledmain.o:
+pca9539_relay.o:
+ublox.o:ublox.h
+hi219.o:
+atcmd.o:atcmd.h
+sd_data.o:sd_data.h
+ltc2943.o:ltc2943.h
+i2crw.o:i2crw.h
+cstp.o:cstp.h
+pcf8574.o:pcf8574.h
+device_mq.o:device_mq.h
+filerw.o:filerw.h
+.PHONY : clean
+clean :
+	-rm app $(Objects)
