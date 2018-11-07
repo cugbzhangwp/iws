@@ -2120,9 +2120,6 @@ RELAY_ADDR 0x76
 		init_iws_up_ti_pak(&app.iws_up_ti[ifor],0);//注册信息响应包
 	}
 
-
-
-	//exit(0);
 	get_dhcpcd_conf();
 	//gpsd_client_frame();
 	snprintf(wlan_ip,100,"NO IP");
