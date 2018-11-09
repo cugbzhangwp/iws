@@ -23,39 +23,39 @@ char sendbuf_tmp[256];
 extern APP_S app;
 
 
-    iws_head myiws_head={//文件头结构初始化(部分固定内容)
-                            .Flag=OTS_FLAG,
-                            .iOTSVer=0x01,   // OTS 文件格式版本。当前为 0x1，如读取程序发现版本高于自己所支持的，应给与提示
-                            //.Proj="default",// 工程名，可选留空
-                            .iFileSize=0, // 全部文件大小，单位 Byte；
-                            .iHeadSize=0, // 文件头大小，单位 Byte ；
-                            .iDevID=OTS_DEV_OSO_N,  // 设备类型ID； OSO-N 为 OTS_DEV_OSO_N ;将来可扩展其他设备类型
-                            .DevSN="abl001", // 设备序列号；字符串
-                            .iFs=0,      // 采样率
-                            .nChan=0,     // 通道个数
-                            .iChOrder=0,
-                            .iChanMask=0, // 通道掩码。比如开启了1,2,3,5通道，则为 0x00000017
-                            .fTime=0,    // 总采样时间长度，单位 mSec         -
+iws_head myiws_head={//文件头结构初始化(部分固定内容)
+                        .Flag=OTS_FLAG,
+                        .iOTSVer=0x01,   // OTS 文件格式版本。当前为 0x1，如读取程序发现版本高于自己所支持的，应给与提示
+                        //.Proj="default",// 工程名，可选留空
+                        .iFileSize=0, // 全部文件大小，单位 Byte；
+                        .iHeadSize=0, // 文件头大小，单位 Byte ；
+                        .iDevID=OTS_DEV_OSO_N,  // 设备类型ID； OSO-N 为 OTS_DEV_OSO_N ;将来可扩展其他设备类型
+                        .DevSN="abl001", // 设备序列号；字符串
+                        .iFs=0,      // 采样率
+                        .nChan=0,     // 通道个数
+                        .iChOrder=0,
+                        .iChanMask=0, // 通道掩码。比如开启了1,2,3,5通道，则为 0x00000017
+                        .fTime=0,    // 总采样时间长度，单位 mSec         -
 /*
 
-                            .iGain=0,     // 增益倍数，如无增益，设置为 0x1      -
-                            .iADShift=0, // AD 偏置，如无偏置，设置为 0            -
-                            .iADMax=0,   // AD 最大值，即正满幅AD值，比如 24 位AD为 2^23      -
-                            .iADMin=0,   // AD 最小值，即负满幅AD值      -
-                            .iAD_para=0,  // AD设置，复制 para_AD（可选）        -
-                            //.iGian_ch,
-                            //.ch_paras.
-                            .iAD_unused=0,// AD设置扩展，未使用     -
-                            .iADC=0x7fffffff,     // AD转换系数，OSO-N 为 0x5D1420;       -
-                            .iADCUnit=0,  // 转换单位，OSO-N 为 OTS_ADCUNIT_Volt      -
-                            .iRefVolot=2.5, // 参考电压（可选）     -*/
-                            .iDataType=0, // 数据类型，参考宏定义;OSO-N 为 OTS_DATATYPE_Mixed
-                            .fDelay=0,    // 数据延迟，单位 mSec
-                            .iTimeStamp=0,// 第一个采样的 Unix 时间戳
-                            .nFileOrder=0,
-                            //.unuse[3];
-                            .nNextHeadSize=0,    // 保留扩展    
-                            };
+                        .iGain=0,     // 增益倍数，如无增益，设置为 0x1      -
+                        .iADShift=0, // AD 偏置，如无偏置，设置为 0            -
+                        .iADMax=0,   // AD 最大值，即正满幅AD值，比如 24 位AD为 2^23      -
+                        .iADMin=0,   // AD 最小值，即负满幅AD值      -
+                        .iAD_para=0,  // AD设置，复制 para_AD（可选）        -
+                        //.iGian_ch,
+                        //.ch_paras.
+                        .iAD_unused=0,// AD设置扩展，未使用     -
+                        .iADC=0x7fffffff,     // AD转换系数，OSO-N 为 0x5D1420;       -
+                        .iADCUnit=0,  // 转换单位，OSO-N 为 OTS_ADCUNIT_Volt      -
+                        .iRefVolot=2.5, // 参考电压（可选）     -*/
+                        .iDataType=0, // 数据类型，参考宏定义;OSO-N 为 OTS_DATATYPE_Mixed
+                        .fDelay=0,    // 数据延迟，单位 mSec
+                        .iTimeStamp=0,// 第一个采样的 Unix 时间戳
+                        .nFileOrder=0,
+                        //.unuse[3];
+                        .nNextHeadSize=0,    // 保留扩展    
+                        };
 int writedata(char * buffer_write,int needwritebyte,FILE * fp)
 {
 
@@ -114,8 +114,8 @@ int get_time_str(long tv,char * strTime)
 int save_file(APP_S * app)
 {
 	char file_url[200];
-	snprintf(app->app_file[APP_FILE_DATA].path,200,"%s","/home/pi/userdata/data");
-	snprintf(app->app_file[APP_FILE_DATA].suffix,200,"%s","iws");
+	snprintf(app->app_file[APP_FILE_DATA].path,100,"%s","/home/pi/userdata/data/iws_orig");
+	snprintf(app->app_file[APP_FILE_DATA].suffix,100,"%s","iws");
     while(app->thread_switch.main_loop)
     {
         if(app->app_sig.sig_setad_request){
@@ -156,7 +156,7 @@ int save_file(APP_S * app)
             if(app->app_file[APP_FILE_DATA].status==FILE_OK){
             	//printf(GREEN"function：%s,line:%d\n"NONE,__FUNCTION__,__LINE__);
                 #define reversebit(x,y)  x^=(1<<y)
-                #define SD_LED 6
+                #define SD_LED 5
                 reversebit(app->pca9539[1],SD_LED);
                 //printf("current=%f\n",-1000*1000*getcurrent());
                 set_pca9539(app->pca9539);
@@ -249,7 +249,7 @@ int write_wave_index=0;
 int save_steim2_file(APP_S * app)
 {
     char file_url[200];
-    snprintf(app->app_file[STEIM2_WAVE_DATA].path,200,"%s","/home/pi/userdata/data");
+    snprintf(app->app_file[STEIM2_WAVE_DATA].path,200,"%s","/home/pi/userdata/data/steim2");
     snprintf(app->app_file[STEIM2_WAVE_DATA].suffix,200,"%s","iws");
     while(app->thread_switch.main_loop)
     {

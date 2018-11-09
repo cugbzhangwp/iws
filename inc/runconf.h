@@ -167,7 +167,8 @@ typedef struct P_COTR{//进程控制
 
 
 typedef struct FILE_CENTER{
- int pid;
+ pid_t pid;
+ pid_t ppid;
  char path[100];
  char filename[100];
  char suffix[8];

@@ -446,7 +446,14 @@ int init_app_struct()
 }
 
 
-
+int init_app_files(FILE_CENTER_S * app_files)
+{
+	snprintf(app_files[APP_LOG_FILE].path,100,"%s","/home/pi/userdata/log");
+    snprintf(app_files[APP_LOG_FILE].suffix,8,"%s","log");
+	app_files->pid=getpid();
+	app_files->ppid=getppid();
+	return 0;
+}
 
 
 int init_conf()

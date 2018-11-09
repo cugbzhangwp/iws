@@ -62,6 +62,7 @@ extern char testbitchar(char num, int bit);
 
 #define APP_FILE_DATA 0//FILE_CENTER_S app_file[5];
 #define STEIM2_WAVE_DATA 1//FILE_CENTER_S app_file[5];
+#define APP_LOG_FILE 2//FILE_CENTER_S app_file[5];
 
 
 
