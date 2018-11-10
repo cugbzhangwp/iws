@@ -421,7 +421,10 @@ typedef struct IWS_RQ_TIME{//服务器信息
 typedef struct IWS_FILE_LIST{//设备注册包
 	int isused;
 	unsigned int tv_sec;
-	char name[1020];
+	unsigned int tv_nsec;
+	unsigned int pak_num;
+	unsigned int file_index;
+	char name[256];
 }__attribute__ ((packed,aligned(1)))IWS_FILE_LIST;
 
 

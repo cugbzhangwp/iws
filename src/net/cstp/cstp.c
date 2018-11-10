@@ -162,7 +162,7 @@ int htonl_wave_head(IWS_UP_WAVEDATA *pak)
 int fs_monitor(APP_S * app)
 {
     for(;;){
-        filenevt(app,"/home/pi/userdata/data"); //监测文件夹变化 
+        filenevt(app,"/home/pi/userdata/data/steim2"); //监测文件夹变化 
     
     }
     
@@ -1923,6 +1923,8 @@ int steim2_evt_trig_pak(IWS_UP_WAVEDATA * iws_up_wavedata,int connect_index, int
     iws_up_wavedata->package_number=htonl(pak_num);
     //app.iws_server[connect_index].sig_trig_wave_data_send_buf++;
     app.app_sig.sig_wave_data_send_buf++;
+
+    //sig_trig_wave_data_send_buf
     // int aa=app.app_count.resample_times-app.app_count.last_trig;
     // int bb=app.app_count.resample_times-app.app_count.trig_start;
    // //printf("aa=%d,bb=%d,app.app_count.last_trig=%d,app.app_count.trig_start=%d\n",aa,bb,app.app_count.last_trig,app.app_count.trig_start);
@@ -2133,6 +2135,8 @@ int mk_trig_ti_check(IWS_UP_TI * iws_up_ti,int server_index)
         }
         return 0;
 }
+
+
 int mk_wave_data_check(IWS_UP_WAVEDATA * iws_up_wavedata,int server_index)
 {
     iws_up_wavedata->wcts[1]='T';

@@ -2627,8 +2627,46 @@ int start_evt()
 		return 0;
 	}
 		printf("url=%s,app.evt_record.fp=%d\n",url,app.evt_record.fp);
-	
+	return 0;
 }
+
+
+
+
+
+
+int start_record_evt()
+{
+	char url[256];
+	if(app.evt_record.fp!=NULL)
+	{
+		app.evt_record.fp=fclose(app.evt_record.fp);
+		app.evt_record.is_file_open=0;
+	}
+	snprintf(url,256,"%s/evt_%d.%d.evt",app.evt_record.path,app.evt_record.utc_time[0],app.evt_record.utc_time[1]);
+	app.evt_record.fp=fopen(url,"w+");
+	printf("url=%s,app.evt_record.fp=%d\n",url,app.evt_record.fp);
+	//exit(0);
+	if(app.evt_record.fp!=NULL){
+			printf("url=%s,app.evt_record.fp=%d\n",url,app.evt_record.fp);
+		app.evt_record.is_file_open=1;
+		return 0;
+	}
+		printf("url=%s,app.evt_record.fp=%d\n",url,app.evt_record.fp);
+	return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 short d_d_d_d=0;
@@ -2839,7 +2877,7 @@ int async_alg_main(APP_S *app)//异步算法处理过程
 						band_passstruct2(fir_list_async,app->iws_para.filter_chose,x_y_z);
 						//band_passstruct_new(fir_list_async);
 					}
-					else{
+					else{//DO TRIG
 						band_passstruct2(fir_list_async,app->iws_para.filter_chose,x_y_z);
 						//band_passstruct_new(fir_list_async);
 
@@ -2880,6 +2918,8 @@ int async_alg_main(APP_S *app)//异步算法处理过程
 								app->is_trig=0;
 							}
 						}
+
+
 						if(app->is_trig==1){//如果触发了则更新触发最后时间
 							app->app_count.last_trig=app->app_count.resample_times;
 							if(app->is_trig_start==0){//开启触发处理过程

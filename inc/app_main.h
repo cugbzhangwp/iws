@@ -253,7 +253,7 @@ typedef struct APP{//命令行参数
 	IWS_PARA iws_para;
 	IWS_SERVER iws_server[6];
 	IWS_CSTP iws_cstp[6];
-	IWS_FILE_LIST iws_file_list[1024];
+	IWS_FILE_LIST iws_file_list[10240];
 	IWS_RQ_TIME iws_rq_time[4];
 	FIR_LIST * listnow;
 	FIR_LIST * listbefore30sec;
@@ -283,6 +283,7 @@ typedef struct APP{//命令行参数
 	double xishu_globe;//1711.92421
 	EVT_RECORD evt_record;
 	IWS_SERVER_SHARE iws_server_share;
+	unsigned int globe_steim2_file_index;
 }__attribute__ ((packed,aligned(1)))APP_S;
 //#include <ad1256.h>
 APP_S app;

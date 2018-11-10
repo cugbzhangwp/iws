@@ -1881,7 +1881,7 @@ int init_iws_steim2_para(IWS_STEIM2 *steim2_para)
 
 int init_evt_record(APP_S * app)
 {
-	snprintf(app->evt_record.path,192,"%s","/home/pi/userdata/data");
+	snprintf(app->evt_record.path,100,"%s","/home/pi/userdata/data/event/");
 }
 
 
@@ -1909,6 +1909,8 @@ int add_file_list(char * fileurl)
 {
 	int ifor;
 	char str[16];
+	char nsec_str[16];
+	char index_str[16];
 		//printf(BLUE"file:%s,function：%s,line:%d\n"NONE,__FILE__,__FUNCTION__,__LINE__);
 
 	// for(ifor=0;ifor<10;ifor++)
@@ -1920,12 +1922,12 @@ int add_file_list(char * fileurl)
 	// //printf(BLUE"file:%s,function：%s,line:%d\n"NONE,__FILE__,__FUNCTION__,__LINE__);
 
 	// str[10]='\0';
-	sscanf(fileurl,"/home/pi/userdata/data/%[0-9]",str);
-	printf("str=%s\n",str);
+	sscanf(fileurl,"/home/pi/userdata/data/steim2/%[0-9].%[0-9].%[0-9]",index_str,str,nsec_str);
+	
 
 			//printf(BLUE"file:%s,function：%s,line:%d\n"NONE,__FILE__,__FUNCTION__,__LINE__);
 
-	for(ifor=0;ifor<1024;ifor++)
+	for(ifor=0;ifor<10240;ifor++)
 	{
 			//printf(BLUE"file:%s,function：%s,line:%d\n"NONE,__FILE__,__FUNCTION__,__LINE__);
 
@@ -1939,6 +1941,10 @@ int add_file_list(char * fileurl)
 			///home/pi/userdata/data/iws_data_1531749114
 		//printf(BLUE"file:%s,function：%s,line:%d,str=%s\n"NONE,__FILE__,__FUNCTION__,__LINE__,str);
 			sscanf(str,"%d",&app.iws_file_list[ifor].tv_sec);
+			//app->globe_steim2_file_index++
+			sscanf(index_str,"%d",&app.iws_file_list[ifor].file_index);
+			app.globe_steim2_file_index=app.iws_file_list[ifor].file_index+1;
+			printf("str---=%s,nsec_str=%s,index_str=%s\n",str,nsec_str,index_str);
 					//printf(BLUE"file:%s,function：%s,line:%d\n"NONE,__FILE__,__FUNCTION__,__LINE__);
 			printf("ifor=%d,%s,tv=%d\n",ifor,fileurl,app.iws_file_list[ifor].tv_sec);
 			break;
@@ -2101,7 +2107,7 @@ RELAY_ADDR 0x76
 	//exit(0);
 	init_app_struct();//
 	init_conf();
-	listfiles("/home/pi/userdata/data",1);
+	listfiles("/home/pi/userdata/data/steim2",1);
 	//exit(0);
 	//fs_monitor(&app);
 	//iws_client_frame(&app);

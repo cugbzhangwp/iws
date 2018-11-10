@@ -277,8 +277,11 @@ int save_steim2_file(APP_S * app)
                 //snprintf(app->app_file[APP_FILE_DATA].filename,100,"%d.%d",app->buffer.databuf[LOOPSAVE]->data_start->date_time.tv_sec,app->buffer.databuf[LOOPSAVE]->data_start->date_time.tv_nsec);
                 //printf("%s/%s.%s.%s",app->app_file[APP_FILE_DATA].path,app->buffer.databuf[LOOPSAVE]->data_start->date_time.tv_sec,app->app_file[APP_FILE_DATA].filename,app->app_file[APP_FILE_DATA].suffix);//0614正常使用模式
 
-                snprintf(file_url,200,"%s/%s.%s.%s",app->app_file[STEIM2_WAVE_DATA].path,app->app_file[APP_FILE_DATA].filename,"steim2",app->app_file[STEIM2_WAVE_DATA].suffix);//0614正常使用模式
+                snprintf(file_url,200,"%s/%06d.%s.%s.%s",app->app_file[STEIM2_WAVE_DATA].path,app->globe_steim2_file_index++,app->app_file[APP_FILE_DATA].filename,"steim2",app->app_file[STEIM2_WAVE_DATA].suffix);//0614正常使用模式
+                
                 app->app_file[STEIM2_WAVE_DATA].fid=fopen(file_url,"wb+");
+                printf("file_url=%s\n",file_url);
+                //exit(0);
                 while(app->app_file[STEIM2_WAVE_DATA].fid==0)
                 {
                     app->app_file[STEIM2_WAVE_DATA].fid=fopen(file_url,"wb+");
@@ -356,6 +359,9 @@ int test_write_evt(IWS_UP_WAVEDATA *evt_wave_pak)
 
 
 extern int steim2_evt_trig_pak(IWS_UP_WAVEDATA * iws_up_wavedata,int connect_index, int pak_num);
+
+
+
 int  make_data_main(APP_S * app)
 {   
     int ifor;
