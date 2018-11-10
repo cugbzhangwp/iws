@@ -145,6 +145,48 @@ typedef struct IWS_UP_SI{//狀態信息包
 	char unuse[114];
 }__attribute__ ((packed,aligned(1)))IWS_UP_SI;
 
+
+
+
+
+typedef struct IWS_EXT_HEAD{//狀態信息包
+	unsigned long utc_time[2];
+	int package_number;
+}__attribute__ ((packed,aligned(1)))IWS_EXT_HEAD;
+
+typedef struct IWS_UP_SI_EXT{//狀態信息包
+	IWS_EXT_HEAD iws_ext_head;
+	char type_lable[2];//SI
+	int package_number;
+	char sta_id[8];
+	int ab_time;
+	int time;
+	int ud[10];
+	int ew[10];
+	int ns[10];
+	char unuse[114];
+}__attribute__ ((packed,aligned(1)))IWS_UP_SI_EXT;
+
+
+
+
+typedef struct IWS_PAK_BUF_INDEX{//狀態信息包
+	unsigned int now;
+	unsigned int number;
+}__attribute__ ((packed,aligned(1)))IWS_PAK_BUF_INDEX;
+
+typedef struct IWS_PAK_BUF{//狀態信息包
+	IWS_PAK_BUF_INDEX si_buf;
+	IWS_PAK_BUF_INDEX ti_buf;
+	IWS_PAK_BUF_INDEX wave_buf;
+	IWS_PAK_BUF_INDEX trig_wave_buf;
+}__attribute__ ((packed,aligned(1)))IWS_PAK_BUF;
+
+
+
+
+
+
 typedef struct IWS_UP_TI{//触发信息包
 	char type_lable[2];//SI
 	int package_number;
@@ -235,7 +277,7 @@ typedef struct IWS_UP_WAVEDATA{//触发信息包
 
 
 typedef struct IWS_UP_WAVEDATA_EXT{//触发信息包
-	long utc_time[2];
+	unsigned long utc_time[2];
 	char wcts[2];//wc ,wt,ws
 	int package_number;
 	char qi;//quality index.D

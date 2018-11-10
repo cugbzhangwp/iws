@@ -284,6 +284,7 @@ typedef struct APP{//命令行参数
 	EVT_RECORD evt_record;
 	IWS_SERVER_SHARE iws_server_share;
 	unsigned int globe_steim2_file_index;
+	IWS_PAK_BUF iws_pak_buf;
 }__attribute__ ((packed,aligned(1)))APP_S;
 //#include <ad1256.h>
 APP_S app;
