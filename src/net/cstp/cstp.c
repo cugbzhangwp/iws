@@ -1804,8 +1804,8 @@ int debug_print_wavedata_time(IWS_UP_WAVEDATA * iws_up_wavedata)
 
 int steim2_mk_ext_wave_pak(IWS_UP_WAVEDATA_EXT * iws_up_wavedata_ext,IWS_STEIM2_OUT * steim2_buf,int pak_num)
 {
-    iws_up_wavedata_ext->utc_time[0]=steim2_buf->utc_time[0];
-    iws_up_wavedata_ext->utc_time[1]=steim2_buf->utc_time[1];
+    iws_up_wavedata_ext->iws_ext_head.utc_time[0]=steim2_buf->utc_time[0];
+    iws_up_wavedata_ext->iws_ext_head.utc_time[1]=steim2_buf->utc_time[1];
     steim2_mk_wave_pak(&(iws_up_wavedata_ext->wcts[0]),steim2_buf,pak_num);
     return 0;
 }

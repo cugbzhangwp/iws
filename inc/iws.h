@@ -277,7 +277,7 @@ typedef struct IWS_UP_WAVEDATA{//触发信息包
 
 
 typedef struct IWS_UP_WAVEDATA_EXT{//触发信息包
-	unsigned long utc_time[2];
+	IWS_EXT_HEAD iws_ext_head;
 	char wcts[2];//wc ,wt,ws
 	int package_number;
 	char qi;//quality index.D

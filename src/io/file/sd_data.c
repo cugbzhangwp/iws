@@ -270,7 +270,7 @@ int save_steim2_file(APP_S * app)
         if(app->app_file[STEIM2_WAVE_DATA].control==FILE_SAVE){
             //printf(GREEN"function：%s,line:%d\n"NONE,__FUNCTION__,__LINE__);
             if(app->app_file[STEIM2_WAVE_DATA].status==FILE_NEWFILE){
-                snprintf(app->app_file[APP_FILE_DATA].filename,100,"%d.%d",app->iws_wave_pak_ext[write_wave_index%1000].utc_time[0],app->iws_wave_pak_ext[write_wave_index%1000].utc_time[1]);
+                snprintf(app->app_file[APP_FILE_DATA].filename,100,"%d.%d",app->iws_wave_pak_ext[write_wave_index%1000].iws_ext_head.utc_time[0],app->iws_wave_pak_ext[write_wave_index%1000].iws_ext_head.utc_time[1]);
                 //writedata(app->buffer.databuf[LOOPSAVE]->data_start,200*sizeof(DATA_FRAME_GEO_S),fp);
                 //get_time_str(app->buffer.databuf[LOOPSAVE]->data_start->date_time.tv_sec,app->app_file[APP_FILE_DATA].filename);
                 

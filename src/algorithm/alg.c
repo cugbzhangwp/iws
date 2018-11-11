@@ -19154,3 +19154,51 @@ int first_direction(FIR_LIST *i_fir_list,float threshold,int fir_length)
 
 
 
+float New_Intensity_calculation(float pga,float pgv,int style)
+	{
+	//style 2 水平合成数据计算 3 三方向合成数据计算
+	//这里的单位都为米
+	float result;
+	float pga_multiple,pga_increment,pgv_multiple,pgv_increment;    //这组系数为1980烈度标准 默认就使用它（参数列表里的值先留着，便于以后修改（通过上位机以某种方式修改））
+
+	if(style==2)
+		{
+		pga_multiple=3.20;    //这组系数为1980烈度标准 默认就使用它（参数列表里的值先留着，便于以后修改（通过上位机以某种方式修改））
+		pga_increment=6.59;   //
+		pgv_multiple=2.96;    //
+		pgv_increment=9.78;   //
+		}
+	else if(style==3)
+		{
+		pga_multiple=3.17;    //这组系数为1980烈度标准 默认就使用它（参数列表里的值先留着，便于以后修改（通过上位机以某种方式修改））
+		pga_increment=6.59;   //
+		pgv_multiple=3.00;    //
+		pgv_increment=9.77;   //
+		}
+	float ipga=pga_multiple*log10(pga/1000.0)+pga_increment; //传进来的是mm 转化为m
+	float ipgv=pgv_multiple*log10(pgv/1000.0)+pgv_increment;
+	if(ipga>=6.0&&ipgv>=6.0)
+		{
+		if (ipgv>12.0)
+		{
+		return(12.0);
+		}
+		else
+			return(ipgv);
+		}
+	else if(ipga<6.0&&ipgv<6.0)
+		{
+		result=(ipga+ipgv)/2.0;
+
+		if(result<1.0)
+			{
+			return(1.0);
+			}
+		else
+			{
+			return(result);
+			}
+
+		}
+
+}

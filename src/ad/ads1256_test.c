@@ -2724,7 +2724,7 @@ float count_data[3]={0};
 
 
 
-#define AVG_SECOND 20
+#define AVG_SECOND 40
 
 int async_alg_main(APP_S *app)//异步算法处理过程
 {
@@ -3039,7 +3039,14 @@ int async_alg_main(APP_S *app)//异步算法处理过程
 
 								// iws_trig_pgaget.band_pass_data.final_PGA=5000;
 								// iws_trig_pgaget.band_pass_data.final_PGV=50;
-								int final_liedu_pga=(int)10*Intensity_calculation(iws_trig_pgaget.band_pass_data.final_PGA,iws_trig_pgaget.multiple_PGA,iws_trig_pgaget.increment_PGA,iws_trig_pgaget.band_pass_data.final_PGV,iws_trig_pgaget.multiple_PGV,iws_trig_pgaget.increment_PGV);
+								int final_liedu_pga=(int)10*Intensity_calculation(\
+									iws_trig_pgaget.band_pass_data.final_PGA,\
+									iws_trig_pgaget.multiple_PGA,\
+									iws_trig_pgaget.increment_PGA,\
+									iws_trig_pgaget.band_pass_data.final_PGV,\
+									iws_trig_pgaget.multiple_PGV,\
+									iws_trig_pgaget.increment_PGV);
+								//int final_liedu_pga=(int)10*New_Intensity_calculation(iws_trig_pgaget.band_pass_data.final_PGA,iws_trig_pgaget.band_pass_data.final_PGV,int style);
 								//int final_liedu_pga=(int)10*(floattest_ipga1(iws_trig_pgaget.band_pass_data.final_PGA/10,iws_trig_pgaget.multiple_PGA,iws_trig_pgaget.increment_PGA));
 								//int final_liedu_pgv=(int)(10*floattest_ipgv1(iws_trig_pgaget.band_pass_data.final_PGV,iws_trig_pgaget.multiple_PGV,iws_trig_pgaget.increment_PGV));
 								//printf(RED"final_liedu_pga=%d\n"NONE,final_liedu_pga);

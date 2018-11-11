@@ -406,4 +406,5 @@ extern int psa_struct_2_main();
 extern int iws_do_trig_pre(BAND_PASS_RESULT *band_pass_data,float * result,int final_liedu_pga,long * utc_time_imt,float sta_lta,int rela_t);
 extern int get_imt(FIR_LIST *list,long * imt,long * trig_start);
 extern int first_direction(FIR_LIST *i_fir_list,float threshold,int fir_length);
+extern float New_Intensity_calculation(float pga,float pgv,int style);
 #endif

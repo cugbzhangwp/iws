@@ -285,6 +285,7 @@ typedef struct APP{//命令行参数
 	IWS_SERVER_SHARE iws_server_share;
 	unsigned int globe_steim2_file_index;
 	IWS_PAK_BUF iws_pak_buf;
+	IWS_UP_SI_EXT iws_up_si_ext[1000];
 }__attribute__ ((packed,aligned(1)))APP_S;
 //#include <ad1256.h>
 APP_S app;
