@@ -82,13 +82,13 @@ SIZE=$(CROSS_COMPILE)size
 OBJCOPY=$(CROSS_COMPILE)objcopy
 OBJDUMP=$(CROSS_COMPILE)objdump
 #CFlag=-I./inc -I./inc/sys -I./inc/net -I./inc/net/udp  -I./inc/net/cstp -I./inc/device -I./inc/device/iic -I./inc/device/iic/oled -I./inc/device/iic/relay  -I./inc/device/uart/gps  -I./inc/io/file -I./inc/lib/cJSON -v -march=armv7 -mfloat-abi=softfp  -L/usr/local/arm/arm-none-linux-gnueabi/libc/usr/lib -L/Users/zhangwp/mycwork/rpi/wiringpi/lib -lpthread -lbcm2835 -lm
-CFlag=-I./inc -I./inc/sys -I./inc/net -I./inc/net/udp  -I./inc/net/cstp -I./inc/device -I./inc/device/iic -I./inc/device/iic/oled -I./inc/device/iic/relay  -I./inc/device/uart/gps  -I./inc/io/file -I./inc/lib/cJSON -v -march=armv7 -mfloat-abi=softfp -mfpu=vfp -L. -L/usr/local/arm/arm-none-linux-gnueabi/libc/usr/lib -L/Users/zhangwp/mycwork/rpi/pi/lib -lpthread -lbcm2835 -lm
+CFlag=-I./inc -I./inc/sys -I./inc/net -I./inc/net/udp  -I./inc/net/cstp -I./inc/device -I./inc/device/iic -I./inc/device/iic/oled -I./inc/device/iic/relay  -I./inc/device/uart/gps  -I./inc/io/file -I./inc/lib/cJSON -v -march=armv7 -mfloat-abi=softfp  -L. -L/home/zhangwp/pi/tools-master/tools-master/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/arm-linux-gnueabihf/lib -lpthread -lbcm2835 -lm
 #CFlag=-v -Wall -Os -mfpu=vfp
 # -mfloat-abi=hard
 #-mfloat-abi=soft
 #c编译隐含规则参数
 #CFLAGS+=
-CFLAGS+=-L. -L/usr/local/arm/arm-none-linux-gnueabi/libc/usr/lib  -I./inc -I./inc/sys -I./inc/net  -I./inc/net/udp  -I./inc/net/cstp -I./inc/device  -I./inc/device/iic -I./inc/device/iic/oled -I./inc/device/iic/relay  -I./inc/device/uart/gps  -I./inc/io/file -I./inc/lib/cJSON -std=gnu99 -lpthread -lbcm2835 -lm -lwiringPi
+CFLAGS+=-L. -L/home/zhangwp/pi/tools-master/tools-master/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/arm-linux-gnueabihf/lib  -I./inc -I./inc/sys -I./inc/net  -I./inc/net/udp  -I./inc/net/cstp -I./inc/device  -I./inc/device/iic -I./inc/device/iic/oled -I./inc/device/iic/relay  -I./inc/device/uart/gps  -I./inc/io/file -I./inc/lib/cJSON  -std=gnu99 -lpthread -lbcm2835 -lm -lwiringPi
 #CFLAGS+=-L/usr/local/arm/arm-none-linux-gnueabi/libc/usr/lib -L/Users/zhangwp/mycwork/rpi/wiringpi/lib -I./inc -I./inc/sys -I./inc/net  -I./inc/net/udp  -I./inc/net/cstp -I./inc/device  -I./inc/device/iic -I./inc/device/iic/oled -I./inc/device/iic/relay  -I./inc/device/uart/gps  -I./inc/io/file -I./inc/lib/cJSON -std=gnu99 -lpthread -lbcm2835 -lm -lwiringPi
 TARGET=app
 #LIBS=-lpthread -lm

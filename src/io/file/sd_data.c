@@ -270,7 +270,9 @@ int save_steim2_file(APP_S * app)
         if(app->app_file[STEIM2_WAVE_DATA].control==FILE_SAVE){
             //printf(GREEN"function：%s,line:%d\n"NONE,__FUNCTION__,__LINE__);
             if(app->app_file[STEIM2_WAVE_DATA].status==FILE_NEWFILE){
-                snprintf(app->app_file[APP_FILE_DATA].filename,100,"%d.%d",app->iws_wave_pak_ext[write_wave_index%1000].iws_ext_head.utc_time[0],app->iws_wave_pak_ext[write_wave_index%1000].iws_ext_head.utc_time[1]);
+                snprintf(app->app_file[APP_FILE_DATA].filename,100,"%d.%d",\
+                    app->iws_wave_pak_ext[write_wave_index%IWS_UP_WAVEDATA_EXT_NUM].iws_ext_head.utc_time[0],\
+                    app->iws_wave_pak_ext[write_wave_index%IWS_UP_WAVEDATA_EXT_NUM].iws_ext_head.utc_time[1]);
                 //writedata(app->buffer.databuf[LOOPSAVE]->data_start,200*sizeof(DATA_FRAME_GEO_S),fp);
                 //get_time_str(app->buffer.databuf[LOOPSAVE]->data_start->date_time.tv_sec,app->app_file[APP_FILE_DATA].filename);
                 
@@ -292,13 +294,13 @@ int save_steim2_file(APP_S * app)
                 app->app_file[STEIM2_WAVE_DATA].status=FILE_OK;
             }
             if(app->app_file[STEIM2_WAVE_DATA].status==FILE_OK){
-                app->app_file[STEIM2_WAVE_DATA].write_count+=writedata(&(app->iws_wave_pak_ext[write_wave_index%1000].wcts[0]),256,app->app_file[STEIM2_WAVE_DATA].fid);
+                app->app_file[STEIM2_WAVE_DATA].write_count+=writedata(&(app->iws_wave_pak_ext[write_wave_index%IWS_UP_WAVEDATA_EXT_NUM]),sizeof(IWS_UP_WAVEDATA_EXT),app->app_file[STEIM2_WAVE_DATA].fid);
 
                 //printf(GREEN"sizeof(IWS_UP_WAVEDATA):%d,write_count=%d\n"NONE,sizeof(IWS_UP_WAVEDATA),app->app_file[STEIM2_WAVE_DATA].write_count);
                 //exit(0);
                 write_wave_index++;
             }
-            if((app->app_file[STEIM2_WAVE_DATA].write_count)==(256*10000))
+            if((app->app_file[STEIM2_WAVE_DATA].write_count)==(sizeof(IWS_UP_WAVEDATA_EXT)*IWS_UP_WAVEDATA_EXT_NUM))
             {
                 printf(GREEN"function：%s,line:%d\n"NONE,__FUNCTION__,__LINE__);
                 close_data_file(app,STEIM2_WAVE_DATA);
@@ -321,6 +323,7 @@ int save_steim2_file(APP_S * app)
         //printf(GREEN"function：%s,line:%d,app.app_sig.sig_data_send=%d\n"NONE,__FUNCTION__,__LINE__,p_app->app_sig.sig_data_send);
         //app->buffer.databuf[LOOPSAVE]=app->buffer.databuf[LOOPSAVE]->loopbufnext;
     }
+    return 0;
 }
 
 
@@ -374,7 +377,8 @@ int  make_data_main(APP_S * app)
                 //
                 //wait_go_signal(1);
         }
-        app->app_sig.sig_wave_data_write_buf=(app->app_sig.sig_wave_data_write_buf_total)%1000;
+        app->app_sig.sig_wave_data_write_buf=(app->app_sig.sig_wave_data_write_buf_total)%IWS_UP_WAVEDATA_EXT_NUM;
+        //printf(GREEN"app->app_sig.sig_wave_data_write_buf=%d\n"NONE,app->app_sig.sig_wave_data_write_buf);
         steim2_mk_ext_wave_pak(&(app->iws_wave_pak_ext[app->app_sig.sig_wave_data_write_buf]),app->buffer.steim2_out_buf[STEIM2_MAKE_PAK],app->app_sig.sig_wave_data_write_buf_total);
         app->app_sig.sig_wave_data_write_buf_total++;
         //int steim2_mk_wave_pak(IWS_UP_WAVEDATA * iws_up_wavedata,IWS_STEIM2_OUT * steim2_buf,int pak_num)

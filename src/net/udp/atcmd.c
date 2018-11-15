@@ -19,7 +19,7 @@
 #include <iws.h>
 #include <cstp.h>
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
-#define SERVER_PORT 8888
+#define SERVER_PORT 8887
 #define BUFF_LEN 4096
 extern APP_S app;
 
@@ -1254,16 +1254,19 @@ int udp_atcmd_main(APP_S * app)
     ser_addr.sin_family = AF_INET;
     ser_addr.sin_addr.s_addr = htonl(INADDR_ANY); //IP地址，需要进行网络序转换，INADDR_ANY：本地地址
     ser_addr.sin_port = htons(SERVER_PORT);  //端口号，需要网络序转换
-    // const int on =1;
-    // //重启后立马可以使用端口
-    // setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &on,sizeof (on));//it must be use before bind();
+	int flag=1,len=sizeof(int); 
+	if( setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &flag, len) == -1) 
+	{ 
+		perror("setsockopt"); 
+		exit(1); 
+	} 
+
     ret = bind(server_fd, (struct sockaddr*)&ser_addr, sizeof(ser_addr));
     if(ret < 0)
     {
         printf("atcmd socket bind fail!\n");
         //return -1;
     }
-
     handle_udp_msg(server_fd);   //处理接收到的数据
 
     close(server_fd);

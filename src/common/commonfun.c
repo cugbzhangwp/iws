@@ -143,13 +143,18 @@ int myread(char * buffer_write,int needwritebyte,FILE * fp)
   realwrite=nwrite=writetimes=0;
   do{//写文件部分
   //ioctl(fdio, GPIO_IOC_N_SD_LED1_ON,1);
-  nwrite=fread(buffer_write+realwrite, 1,needwritebyte-realwrite,fp);
-  writetimes++;
-  realwrite+=nwrite;
+    if(feof(fp)==0){
+      nwrite=fread(buffer_write+realwrite, 1,needwritebyte-realwrite,fp);
+      writetimes++;
+      realwrite+=nwrite;
+    }
+    else{
+      break;
+    }
   //ioctl(fdio, GPIO_IOC_N_SD_LED1_OFF,1);
   }while(realwrite!=needwritebyte);
-  printf(GREEN"inside %s line %d\n"NONE, __FUNCTION__,__LINE__);
-  printf("needwritebyte=%d,realwrite=%d",needwritebyte,realwrite);
+  //printf(GREEN"inside %s line %d\n"NONE, __FUNCTION__,__LINE__);
+  //printf("needwritebyte=%d,realwrite=%d",needwritebyte,realwrite);
   return realwrite;
 }
 

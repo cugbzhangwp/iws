@@ -253,7 +253,7 @@ typedef struct APP{//命令行参数
 	IWS_PARA iws_para;
 	IWS_SERVER iws_server[6];
 	IWS_CSTP iws_cstp[6];
-	IWS_FILE_LIST iws_file_list[10240];
+	IWS_FILE_LIST iws_file_list[INDEX_FILE_NUM];
 	IWS_RQ_TIME iws_rq_time[4];
 	FIR_LIST * listnow;
 	FIR_LIST * listbefore30sec;
@@ -273,7 +273,7 @@ typedef struct APP{//命令行参数
 	int buf[2][5000];
 	int server_index;
 	int ping_pang;
-	IWS_UP_WAVEDATA_EXT iws_wave_pak_ext[1000];
+	IWS_UP_WAVEDATA_EXT iws_wave_pak_ext[IWS_UP_WAVEDATA_EXT_NUM];
 	IWS_UP_WAVEDATA iws_wave_pak[1000];
 	IWS_UP_TI iws_up_ti[1000];
 	IWS_TRIG_PSAGET iws_trig_psaget;

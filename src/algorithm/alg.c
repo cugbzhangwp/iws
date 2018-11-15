@@ -9,7 +9,7 @@
 #include <printcolor.h>
 extern APP_S app;
 #define alg_locat() printf(BLUE"file:%s,function：%s,line:%d\n"NONE,__FILE__,__FUNCTION__,__LINE__)
-
+float New_Intensity_calculation(float pga,float pgv,int style);
 
 float ipga(float pga,float multiple,float increment)
 	{

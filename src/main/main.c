@@ -2002,6 +2002,8 @@ int printf_file_list()
 int main(int argc,char ** argv)
 {	
 
+	int tmp_len=2048-100-118-88-sizeof(IWS_PAK_BUF)-sizeof(IWS_STEIM2)-sizeof(IWS_PARA);
+	printf("tmp_len=%d,sizeof(IWS_SERVER)=%d,sizeof(IWS_RQ_TIME)=%d\n",tmp_len,sizeof(IWS_SERVER),sizeof(IWS_RQ_TIME));
 	printf("sizeof(IWS_SERVER)=%d\n",sizeof(IWS_SERVER));
 	printf("sizeof(IWS_STEIM2)=%d\n",sizeof(IWS_STEIM2));
 	printf("sizeof(IWS_CSTP)=%d\n",sizeof(IWS_CSTP));
@@ -2122,12 +2124,16 @@ RELAY_ADDR 0x76
 	//iws_client1(&app);
 	//iws_client(&app);
 	int ifor;
+	for(ifor=0;ifor<IWS_UP_WAVEDATA_EXT_NUM;ifor++)
+	{
+		//init_iws_wave_pak(&app.iws_wave_pak[ifor],0);//注册信息响应包
+		init_iws_wave_pak(&(app.iws_wave_pak_ext[ifor].wcts[0]),0);//注册信息响应包
+	}
 	for(ifor=0;ifor<1000;ifor++)
 	{
 		init_iws_wave_pak(&app.iws_wave_pak[ifor],0);//注册信息响应包
-		init_iws_wave_pak(&(app.iws_wave_pak_ext[ifor].wcts[0]),0);//注册信息响应包
+		//init_iws_wave_pak(&(app.iws_wave_pak_ext[ifor].wcts[0]),0);//注册信息响应包
 	}
-
 	for(ifor=0;ifor<1000;ifor++)
 	{
 		init_iws_up_ti_pak(&app.iws_up_ti[ifor],0);//注册信息响应包

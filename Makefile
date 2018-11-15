@@ -66,6 +66,7 @@ Objects += cstp.o
 Objects += pcf8574.o
 Objects += device_mq.o
 Objects += filerw.o
+Objects += algv20.o
 
 #Objects += gpio-key.o
 
@@ -73,7 +74,7 @@ Objects += filerw.o
 #CROSS_COMPILE=/usr/local/arm/arm-2014.05/bin/arm-none-linux-gnueabi-
 #CROSS_COMPILE=/usr/local/arm/arm-2007q3/bin/arm-none-linux-gnueabi-
 #CROSS_COMPILE=/usr/local/arm/arm-linaro/bin/arm-linux-gnueabihf-
-CROSS_COMPILE=arm-none-linux-gnueabi-
+#CROSS_COMPILE=arm-none-linux-gnueabi-
 AS=$(CROSS_COMPILE)as
 CC=$(CROSS_COMPILE)gcc
 LD=$(CROSS_COMPILE)ld
@@ -81,15 +82,13 @@ NM= $(CROSS_COMPILE)nm
 SIZE=$(CROSS_COMPILE)size
 OBJCOPY=$(CROSS_COMPILE)objcopy
 OBJDUMP=$(CROSS_COMPILE)objdump
-#CFlag=-I./inc -I./inc/sys -I./inc/net -I./inc/net/udp  -I./inc/net/cstp -I./inc/device -I./inc/device/iic -I./inc/device/iic/oled -I./inc/device/iic/relay  -I./inc/device/uart/gps  -I./inc/io/file -I./inc/lib/cJSON -v -march=armv7 -mfloat-abi=softfp  -L/usr/local/arm/arm-none-linux-gnueabi/libc/usr/lib -L/Users/zhangwp/mycwork/rpi/wiringpi/lib -lpthread -lbcm2835 -lm
-CFlag=-I./inc -I./inc/sys -I./inc/net -I./inc/net/udp  -I./inc/net/cstp -I./inc/device -I./inc/device/iic -I./inc/device/iic/oled -I./inc/device/iic/relay  -I./inc/device/uart/gps  -I./inc/io/file -I./inc/lib/cJSON -v -march=armv7 -mfloat-abi=softfp  -L/usr/local/arm/arm-none-linux-gnueabi/libc/usr/lib -L/Users/zhangwp/mycwork/rpi/pi/lib -lpthread -lbcm2835 -lm
+#CFlag=-I./inc -I./inc/sys -I./inc/net -I./inc/net/udp  -I./inc/net/cstp -I./inc/device -I./inc/device/iic -I./inc/device/iic/oled -I./inc/device/iic/relay  -I./inc/device/uart/gps  -I./inc/io/file -I./inc/lib/cJSON -v -march=armv7 -mfloat-abi=softfp -lpthread -lbcm2835 -lm
 #CFlag=-v -Wall -Os -mfpu=vfp
 # -mfloat-abi=hard
 #-mfloat-abi=soft
 #c编译隐含规则参数
 #CFLAGS+=
-CFLAGS+=-L/usr/local/arm/arm-none-linux-gnueabi/libc/usr/lib  -I./inc -I./inc/sys -I./inc/net  -I./inc/net/udp  -I./inc/net/cstp -I./inc/device  -I./inc/device/iic -I./inc/device/iic/oled -I./inc/device/iic/relay  -I./inc/device/uart/gps  -I./inc/io/file -I./inc/lib/cJSON -std=gnu99 -lpthread -lbcm2835 -lm -lwiringPi
-#CFLAGS+=-L/usr/local/arm/arm-none-linux-gnueabi/libc/usr/lib -L/Users/zhangwp/mycwork/rpi/wiringpi/lib -I./inc -I./inc/sys -I./inc/net  -I./inc/net/udp  -I./inc/net/cstp -I./inc/device  -I./inc/device/iic -I./inc/device/iic/oled -I./inc/device/iic/relay  -I./inc/device/uart/gps  -I./inc/io/file -I./inc/lib/cJSON -std=gnu99 -lpthread -lbcm2835 -lm -lwiringPi
+CFLAGS+=-I./inc -I./inc/sys -I./inc/net  -I./inc/net/udp  -I./inc/net/cstp -I./inc/device  -I./inc/device/iic -I./inc/device/iic/oled -I./inc/device/iic/relay  -I./inc/device/uart/gps  -I./inc/io/file -I./inc/lib/cJSON
 TARGET=app
 #LIBS=-lpthread -lm
 LIBS +=-lpthread -lbcm2835 -lm -lwiringPi
@@ -134,6 +133,7 @@ cstp.o:cstp.h
 pcf8574.o:pcf8574.h
 device_mq.o:device_mq.h
 filerw.o:filerw.h
+algv20.o:algv20.h
 .PHONY : clean
 clean :
 	-rm app $(Objects)

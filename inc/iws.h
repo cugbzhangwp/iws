@@ -23,6 +23,27 @@ char str[4];
 #define OP_SERVER_OPTION 5
 
 
+#define SERVER_PROTOCOL_CSTP 0
+#define SERVER_PROTOCOL_ELSE 1
+
+
+#define SERVER_PROTOCOL_CSTP_VERSION_10 0
+#define SERVER_PROTOCOL_CSTP_VERSION_20 1
+
+
+
+
+#define INDEX_FILE_NUM 10240
+#define IWS_UP_WAVEDATA_EXT_NUM 10000
+
+
+
+
+
+
+
+
+
 
 
 
@@ -103,7 +124,7 @@ typedef struct IWS_TIMEDATA_REQUEST{//时段请求包
 	int package_number;
 	char sta_id[8];
 	short ctrl_id;
-	unsigned long long time_mark;
+	unsigned int time_mark;
 	int time_length;
 	char unuse[40];
 }__attribute__ ((packed,aligned(1)))IWS_TIMEDATA_REQUEST;
@@ -176,10 +197,11 @@ typedef struct IWS_PAK_BUF_INDEX{//狀態信息包
 }__attribute__ ((packed,aligned(1)))IWS_PAK_BUF_INDEX;
 
 typedef struct IWS_PAK_BUF{//狀態信息包
-	IWS_PAK_BUF_INDEX si_buf;
-	IWS_PAK_BUF_INDEX ti_buf;
-	IWS_PAK_BUF_INDEX wave_buf;
-	IWS_PAK_BUF_INDEX trig_wave_buf;
+	unsigned int globe_pk_num;
+	IWS_PAK_BUF_INDEX si_buf_index;
+	IWS_PAK_BUF_INDEX ti_buf_index;
+	IWS_PAK_BUF_INDEX wave_buf_index;
+	IWS_PAK_BUF_INDEX trig_wave_buf_index;
 }__attribute__ ((packed,aligned(1)))IWS_PAK_BUF;
 
 
@@ -415,6 +437,29 @@ typedef struct IWS_STEIM2_OUT{//
 
 
 
+
+
+
+
+
+
+
+
+
+typedef struct IWS_RQ_TIME{//服务器信息
+	int isused;
+	unsigned int timestart;
+	unsigned int timeend;
+	unsigned int len;
+	int server_index;
+	int file_index;
+	void * para;
+	int t_t;
+	struct timespec date_time;//数据采集时间
+}__attribute__ ((packed,aligned(1)))IWS_RQ_TIME;
+
+
+
 typedef struct IWS_SERVER{//服务器信息
 	int index;
 	//int mode;
@@ -439,24 +484,19 @@ typedef struct IWS_SERVER{//服务器信息
 	IWS_STEIM2 steim2_para_init_tirg;//触发模式下调用压缩程序时传入的参数和输出结果
 	int sig_trig_ti;
 	int sig_trig_ti1;
-
 	int sig_trig_wave_data_send_buf;
 	int is_trig_start;
 	int is_first_send;
-
 	IWS_PARA iws_para;
-	unsigned char unuse[2048-92-118-88-sizeof(IWS_STEIM2)-sizeof(IWS_PARA)];
+	int protocol;
+	int version;
+	IWS_PAK_BUF iws_pak_buf;
+	IWS_RQ_TIME iws_rq_time;
+	unsigned char unuse[2048-100-118-88-sizeof(IWS_RQ_TIME)-sizeof(IWS_PAK_BUF)-sizeof(IWS_STEIM2)-sizeof(IWS_PARA)];
 }__attribute__ ((packed,aligned(1)))IWS_SERVER;
 
 
-typedef struct IWS_RQ_TIME{//服务器信息
-	int isused;
-	unsigned int timestart;
-	unsigned long long len;
-	int server_index;
-	int t_t;
-	struct timespec date_time;//数据采集时间
-}__attribute__ ((packed,aligned(1)))IWS_RQ_TIME;
+
 
 
 

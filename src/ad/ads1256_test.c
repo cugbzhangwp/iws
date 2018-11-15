@@ -42,6 +42,7 @@ RPI_V2_GPIO_P1_13->RPI_GPIO_P1_13
 #include <time_geo.h>
 #include <wiringPi.h>
 #include <alg.h>
+#include <algv20.h>
 //#include <sched.h>
 //CS      -----   SPICS  
 //DIN     -----   MOSI
@@ -2069,7 +2070,7 @@ int init_pga(IWS_TRIG_PGAGET *iws_trig_pgaget)
 	iws_trig_pgaget->increment_PGA=-1.23;
 	iws_trig_pgaget->multiple_PGV=3.61;
 	iws_trig_pgaget->increment_PGV=2.72;
-	iws_trig_pgaget->trig=1;
+	iws_trig_pgaget->trig=0;
 	iws_trig_pgaget->countt=1;
 	iws_trig_pgaget->PGV_type=2;
 	//app.iws_trig_pgaget.period[2]=3;
@@ -2720,11 +2721,494 @@ float Intensity_calculation(float pga,float pga_multiple,float pga_increment,flo
 float avg_data[3]={0};
 float count_data[3]={0};
 
-
+float mean[100];
+int alg_pre_coutn_resample=0;
 
 
 
 #define AVG_SECOND 40
+
+
+
+
+
+
+
+
+
+int async_alg_main_v20(APP_S *app)//Òì²½Ëã·¨´¦Àí¹ý³Ì
+{
+	int mode=0;
+	int aa;
+	long utc_time_imt[2];
+	// printf("alg_pre_count=%d\n",alg_pre_count);
+	// exit(0);
+	while(1)
+	{
+
+		if(app->app_sig.sig_can_alg>0){
+
+			//app.app_sig.sig_can_alg++;
+			app->app_count.date_time.tv_sec=fir_list1_async->utc_second;
+			app->app_count.date_time.tv_nsec=fir_list1_async->utc_nanosecond;
+			app->app_count.sample_times_ch++;
+			//printf(ADS1256_DEBUG_COLOR"[%d]:tv_sec:%d,tv_nsec:%d\n"NONE,tid,app->app_count.date_time.tv_sec,app->app_count.date_time.tv_nsec);
+
+			// if(mode==0){
+			// 	trig_wave();
+			// }
+			// else if(mode==2){
+			// 	trig_info();
+
+			// }
+			// else if(mode==1){
+			// 	alltime_wave();
+			// }
+			//printf(GREEN"function£º%s,line:%d\n"NONE,__FUNCTION__,__LINE__);
+
+			//printf(GREEN"app->app_para.ad_ch_select=%d\n"NONE,app->app_para.ad_ch_select);
+			//printf(GREEN"function£º%s,line:%d\n"NONE,__FUNCTION__,__LINE__);
+
+			alg_pre_count++;//30*app->app_para.fs
+			if(alg_pre_count>AVG_SECOND*app->app_para.fs+app->iws_para.firlen+200){//ÓÐÒ»Ð©Êý¾Ýºó¿ªÊ¼×öÖØ²ÉÑù
+			//printf(GREEN"function£º%s,line:%d\n"NONE,__FUNCTION__,__LINE__);
+				float p_result,tmp=0;
+
+
+
+/*
+					avg_data[0]=avg_data[0]/(AVG_SECOND*app->app_para.fs-1);//fir_list1_async->data[0];
+					avg_data[1]=avg_data[1]/(AVG_SECOND*app->app_para.fs-1);//fir_list1_async->data[0];
+					avg_data[2]=avg_data[2]/(AVG_SECOND*app->app_para.fs-1);//fir_list1_async->data[0];
+
+
+*/
+				// printf("avg_data[0]=%f\n",avg_data[0]);
+				// printf("avg_data[1]=%f\n",avg_data[1]);
+				// printf("avg_data[2]=%f\n",avg_data[2]);
+				fir_list1_async->data[0]=fir_list1_async->data[0]-avg_data[0];
+				fir_list1_async->data[1]=fir_list1_async->data[1]-avg_data[1];
+				fir_list1_async->data[2]=fir_list1_async->data[2]-avg_data[2];
+				int resample2_ret=resample11_11(fir_list1_async,&app->iws_para.location,fir_list_async,&app->iws_para.first_time,2);
+
+				//>>´¥·¢²âÊÔ
+				// ret = slt_lltstru_2(fir_list_async,app->iws_para.slt_length,app->iws_para.llt_length,&p_result,app->iws_para.threshold,app->iws_para.trg_ch);
+				// printf("ret=%d\n",ret);
+				// ret = slt_lltstru(fir_list_async,app->iws_para.slt_length,app->iws_para.llt_length,&p_result,app->iws_para.threshold,app->iws_para.trg_ch);
+				// printf("ret=%d\n",ret);
+				// if(slt_lltstru_2(fir_list_async,app->iws_para.slt_length,app->iws_para.llt_length,&p_result,app->iws_para.threshold,app->iws_para.trg_ch)==2){
+				// 	printf(RED"has triggered£¬ch=%d\n"NONE,app->app_para.ad_ch_select);
+					
+				// 	//exit(0);
+				// }
+				// if(slt_lltstru(fir_list_async,app->iws_para.slt_length,app->iws_para.llt_length,&p_result,app->iws_para.threshold,app->iws_para.trg_ch)==2){
+				// 	printf(PURPLE"has triggered£¬ch=%d\n"NONE,app->app_para.ad_ch_select);
+				// 	//exit(0);
+				// }
+				//<<´¥·¢²âÊÔ
+
+				//printf(RED"fir_list1_async->utc_second=%d,fir_list1_async->count=%d\n"NONE,fir_list1_async->utc_second,fir_list1_async->count);
+				fir_list1_async=fir_list1_async->next;//Ã¿µÃµ½Ò»¸öÐÂ²ÉÑù£¬Ö¸ÕëºóÒÆ
+
+				int ifor,band_passstruct_ret=0;
+	
+				
+				if(resample2_ret==2){//Ã¿µÃµ½Ò»¸öÖØ²ÉÑù×öÏàÓ¦µÄ´¦Àí
+
+					if(alg_pre_coutn_resample<10*app->app_para.fs)                                                //FENG BIAO_11_12
+						{
+						//resample2_num++;															//FENG BIAO_11_12 µÈ¹»10ÃëµÄÖØ²ÉÑùÊý¾Ý
+
+						}
+					else if(alg_pre_coutn_resample==10*app->app_para.fs)											//FENG BIAO_11_12
+						{
+						calculate_mean(fir_list_async,mean);								//FENG BIAO_11_12 ¼ÆËã10Ãë ¾ùÖµ dataV dataD
+							//resample2_num++;
+						}
+					else
+						{
+						int pga_ret;
+					
+				/*	band_passstruct11_11();  */                                                      //FENG BIAO_11_12
+						int x_y_z=0;
+						band_passstruct11_11(fir_list_async,app->iws_para.filter_chose,x_y_z,mean);       //FENG BIAO_11_12 ¼ÆËãÐÂµãµÄ dataV dataD ÒÔ¼° band_passÊý¾Ý
+
+						//pga_ret=PGA_V_G2(FIR_LIST *i_fir_list,BAND_PASS_RESULT *band_pass_data,int *count,int timespan,int *trig,int PGV_type,int band_pass_flag);		//ÀïÃæÊÇÈ¥ÁËÖ±µÃµ½µÄ½á¹û	Í¨¹ýtrigÅÐ¶ÏÊÇÄÄÖÖ¼ÆËã·½Ê½ //FENG BIAO_11_12 ¼ÆËãPGA PGV PGD
+						
+						
+						
+						pga_ret=PGA_V_G2(fir_list_async,&(iws_trig_pgaget.band_pass_data),&(iws_trig_pgaget.countt),1,&(iws_trig_pgaget.trig),iws_trig_pgaget.PGV_type,app->iws_para.filter_chose);													  //FENG BIAO_11_12 
+
+
+
+
+                    if(pga_ret==3)
+						{
+						//È¡PGA£¬PGV,PGDµÄ×´Ì¬ÐÅÏ¢Öµ                                                       //FENG BIAO_11_12
+
+
+
+
+
+
+						}
+
+					app->app_count.resample_times++;
+
+					//printf("resample_times=%d,fir_list_async.count=%d\n",app->app_count.resample_times,fir_list_async->count);
+					//int realwrite=mywrite(&fir_list_async->data[0],4,fp_aaaa);
+
+					app->app_count.si_count_second++;
+					//printf("app->app_count.si_count=%d\n",app->app_count.si_count);
+
+					if(app->app_count.si_count==0){
+						//printf(CYAN"fir_list_async->utc_second=%d\n"NONE,fir_list_async->utc_second);
+						app->iws_status.utc_time[0]=fir_list_async->utc_second;
+						//exit(0);
+					}
+					//printf(RED"1 app->iws_status.utc_time[0]=%d\n"NONE,app->iws_status.utc_time[0]);
+					app->app_count.si_count++;
+
+					for(ifor=0;ifor<3;ifor++){//¼ÆËãÈý¸öÍ¨µÀµÄ×î´ó×îÐ¡Öµ
+						if(app->iws_status.max[ifor]<fir_list_async->data[ifor]){
+							//printf(BLUE"fir_list_async->data[ifor]=%f\n"NONE,fir_list_async->data[ifor]);
+
+							app->iws_status.max[ifor]=fir_list_async->data[ifor];
+						}
+						if(app->iws_status.min[ifor]>fir_list_async->data[ifor]){
+							app->iws_status.min[ifor]=fir_list_async->data[ifor];
+							//printf(GREEN"fir_list_async->data[ifor]=%f\n"NONE,fir_list_async->data[ifor]);
+						}
+						//printf(RED"fir_list_async->data[ifor]=%f\n"NONE,fir_list_async->data[ifor]);
+					}
+					//printf("app->app_count.si_count_second=%d\n",app->app_count.si_count_second);
+					if(app->app_count.si_count_second==app->app_para.fs){
+						//printf(GREEN"1 app->iws_status.utc_time[0]=%d\n"NONE,app->iws_status.utc_time[0]);
+						//printf(LIGHT_CYAN"si_count_second=%d,app->iws_status.max[0]=%f,app->iws_status.min[0]=%f\n"NONE,\
+						app->app_count.si_count_second,app->iws_status.max[0],app->iws_status.min[0]);
+						//printf("app->app_count.si_count_second=%d,app->iws_status.min[0]=%f\n",app->app_count.si_count_second,app->iws_status.min[0]);
+						app->iws_status.ud[app->app_count.si_count_times%10]=(int)app->xishu_globe*(app->iws_status.max[0]-app->iws_status.min[0]);//app->app_count.si_count_times+1;//(int)(((app->iws_status.max[2]-app->iws_status.min[2])/5)*8388607);
+						app->iws_status.ew[app->app_count.si_count_times%10]=(int)app->xishu_globe*(app->iws_status.max[1]-app->iws_status.min[1]);//app->app_count.si_count_times+2;//(int)(((app->iws_status.max[1]-app->iws_status.min[1])/5)*8388607);
+						app->iws_status.ns[app->app_count.si_count_times%10]=(int)app->xishu_globe*(app->iws_status.max[2]-app->iws_status.min[2]);//app->app_count.si_count_times+3;//(int)(((app->iws_status.max[0]-app->iws_status.min[0])/5)*8388607);
+						//printf("max=%f,min=%f,max-min=%f,int max-min=%d\n",app->iws_status.max[0],app->iws_status.min[0],(app->iws_status.max[0]-app->iws_status.min[0]),(int)(app->iws_status.max[0]-app->iws_status.min[0]));
+						app->iws_status.max[0]=app->iws_status.max[1]=app->iws_status.max[2]=-50*1000;
+						app->iws_status.min[0]=app->iws_status.min[1]=app->iws_status.min[2]=50*1000;
+						app->app_count.si_count_second=0;
+						app->app_count.si_count_times++;
+					}
+					if(app->app_count.si_count==(app->app_para.fs*10)){//ÊÕ¸î×´Ì¬ÐÅÏ¢
+						//printf("yes\n");
+						//printf(PURPLE"2 app->iws_status.utc_time[0]=%d\n"NONE,app->iws_status.utc_time[0]);
+						iws_do_status_pre(fir_list_async,&app->iws_status);
+						app->app_count.si_count=0;
+						
+					}
+					iws_do_steim_pre(fir_list_async,&app->steim2_para);//ÊÕ¸î²¨ÐÎÊý¾Ý
+					//->get x_y_z;
+					if(app->iws_para.i_l[0]==1&&app->iws_para.i_l[1]==1&&app->iws_para.i_l[2]==0){
+						app->iws_para.trg_ch=4;
+						x_y_z=0;
+					}
+					else if(app->iws_para.i_l[0]==1&&app->iws_para.i_l[1]==1&&app->iws_para.i_l[2]==1){
+						app->iws_para.trg_ch=4;
+						x_y_z=1;
+					}
+					else if(app->iws_para.i_l[2]==1)
+					{
+						app->iws_para.trg_ch=2;
+						x_y_z=0;
+					}
+					else{
+						app->iws_para.trg_ch=4;
+						x_y_z=0;
+					}
+					//<-get x_y_z;
+					if(app->app_count.resample_times<(30*app->app_para.fs)){//Î¬»¤30ÃëÇ°µÄÊý¾ÝÖ¸Õë     µÈ´ý30s²Å¿ªÊ¼
+						app->listbefore30sec=fir_list_async_head;
+						//band_passstruct2(fir_list_async,app->iws_para.filter_chose,x_y_z);           //FENG BIAO_11_12
+						//band_passstruct_new(fir_list_async);
+						//band_passstruct11_11(fir_list_async,app->iws_para.filter_chose,x_y_z);         //FENG BIAO_11_12
+
+						// ggg=PGA_V_G2;																	   //FENG BIAO_11_12
+
+
+						//calculate_mean();//j¼ÆËãÇ°Ê®ÃëµÄÊý¾Ý ¾ùÖµ dataV£¬dataD                          FENG BIAO_11_12
+
+					}
+					else{//DO TRIG//###################################################################################¿ªÊ¼×ö´¥·¢#################################################################
+						//  band_passstruct2(fir_list_async,app->iws_para.filter_chose,x_y_z);          FENG BIAO_11_12
+						//band_passstruct11_11(fir_list_async,app->iws_para.filter_chose,x_y_z);       // FENG BIAO_11_12
+						//band_passstruct_new(fir_list_async);
+						/*aaa=PGA_V_G2();       */                                                          //  FENG BIAO_11_12
+                        if(app->iws_para.trig_flag==0)
+                        {
+							if(slt_lltstru(fir_list_async,app->iws_para.slt_length,app->iws_para.llt_length,&p_result,app->iws_para.threshold,app->iws_para.trg_ch)==2){
+								printf(PURPLE"has triggered£¬ch=%d\n"NONE,app->app_para.ad_ch_select);
+								app->is_trig=1;
+							}
+							else{
+								app->is_trig=0;
+							}
+						}
+						else if(app->iws_para.trig_flag==1){
+							if(abs(fir_list_async->band_pass_data[4])>app->iws_para.threshold_a[0]){
+								printf(PURPLE"has triggered£¬ch=%d\n"NONE,app->app_para.ad_ch_select);
+								app->is_trig=1;
+							}
+							else{
+								app->is_trig=0;
+							}
+						}
+						else if(app->iws_para.trig_flag==2){
+							if(abs(fir_list_async->band_pass_dataV[4])>app->iws_para.threshold_a[1]){
+								printf(PURPLE"has triggered£¬ch=%d\n"NONE,app->app_para.ad_ch_select);
+								app->is_trig=1;
+							}
+							else{
+								app->is_trig=0;
+							}
+						}
+						else if(app->iws_para.trig_flag==3){
+							if(abs(fir_list_async->band_pass_dataD[4])>app->iws_para.threshold_a[2]){
+								printf(PURPLE"has triggered£¬ch=%d\n"NONE,app->app_para.ad_ch_select);
+								app->is_trig=1;
+							}
+							else{
+								app->is_trig=0;
+							}
+						}
+						// app->is_trig ÊÇ·ñ´¥·¢
+
+						if(app->is_trig==1){//Èç¹û´¥·¢ÁËÔò¸üÐÂ´¥·¢×îºóÊ±¼ä
+							app->app_count.last_trig=app->app_count.resample_times;
+							if(app->is_trig_start==0){//¿ªÆô´¥·¢´¦Àí¹ý³Ì             Ê×´Î´¥·¢
+								init_psa(&iws_trig_psaget);
+								init_pga(&iws_trig_pgaget);
+
+								d_d_d_d=first_direction(fir_list_async,2,app->iws_para.firlen);//chu dong fang xiang
+								sta_lta=p_result;
+								get_imt(fir_list_async,iws_trig_psaget.utc_time_imt,iws_trig_psaget.trig_start);
+								app->evt_record.utc_time[0]=iws_trig_psaget.trig_start[0];
+								app->evt_record.utc_time[1]=iws_trig_psaget.trig_start[1];
+								start_evt();
+								int det_t=0;//µ÷Õûµ½NÍ¨µÀ
+								app->app_sig.sig_wave_data_send_buf=(app->app_sig.sig_wave_data_write_buf+(int)(1000-3*36*4*(app->app_para.fs/200.0)))%1000;
+								app->app_count.trig_start=app->app_count.resample_times;
+								int ifor;
+								app->sig_trig_wave=3*36*4*(app->app_para.fs/200.0);
+								for(ifor=0;ifor<6;ifor++)
+								{
+
+									if((app->iws_server[ifor].status.isconnect==1)&&(app->iws_server[ifor].mode==2)){
+										//app->buffer.steim2_out_buf[STEIM2_NOW];
+										app->iws_server[ifor].sig_trig_wave=3*36*4*(app->app_para.fs/200.0);
+										//printf("app->iws_server[ifor].sig_trig_wave=%d\n,\
+											app->app_sig.sig_wave_data_send_buf=%d\n\
+											app->app_sig.sig_wave_data_write_buf",\
+											app->iws_server[ifor].sig_trig_wave,\
+											app->app_sig.sig_wave_data_send_buf,\
+											app->app_sig.sig_wave_data_write_buf);
+										app->iws_server[ifor].fir_list_async_trig_start=app->listbefore30sec;
+										app->iws_server[ifor].sig_trig_wave_data_send_buf=app->app_sig.sig_wave_data_send_buf;
+										//printf(PURPLE"server %d ready app->iws_server[ifor].sig=%d\n"NONE,ifor,app->iws_server[ifor].sig);
+										//app->iws_server[ifor].sig++;
+										app->iws_server[ifor].is_trig_start=1;
+									}
+								}
+								app->listbefore30sec=app->listbefore30sec->next;
+								//fir_list_async_trig_start
+								app->is_trig_start=1;//Ö¸Ê¾´¥·¢´«²¨ÐÎ¿ªÊ¼
+								app->app_sig.sig_trig_ti_send_buf=app->app_sig.sig_trig_ti_write_buf;
+
+
+								calculate_mean(fir_list_async,&mean);															//FENG BIAO_11_12 ¼ÆËã10Ãë È¥Íê¾ùÖµµÄ dataV dataD
+								int i;
+								for(i=0;i<3*app->app_para.fs;i++)
+									{
+										band_passstruct11_11(fir_list_async,app->iws_para.filter_chose,x_y_z,mean);         //FENG BIAO_11_12 ¼ÆËãÐÂµãµÄ dataV dataD ÒÔ¼° band_passÊý¾Ý
+										fir_list_async=fir_list_async->last;					                      //FENG BIAO_11_12 ¼ÆËãPGA PGV PGD										
+									}
+								iws_trig_pgaget.trig=1;
+								PGA_V_G2(fir_list_async,&(iws_trig_pgaget.band_pass_data),&(iws_trig_pgaget.countt),1,&(iws_trig_pgaget.trig),iws_trig_pgaget.PGV_type,app->iws_para.filter_chose);													  //FENG BIAO_11_12 ;  
+								//¼ÆËã3ÃëµÄPGA£¬PGV£¬PGD                                     
+								  //ÕâÀïÓ¦¸Ã·¢ËÍÐÅÏ¢
+								
+							}
+						}
+						if(app->is_trig_start==1){//Î¬»¤´¥·¢×´Ì¬£¬Ã¿¸ö²ÉÑùµã¸üÐÂÒ»´Î×´Ì¬
+							int aa=app->app_count.resample_times-app->app_count.last_trig;
+							int bb=app->app_count.resample_times-app->app_count.trig_start;
+							//printf(RED"aa=%d,bb=%d,app.app_count.last_trig=%d,app.app_count.trig_start=%d\n"NONE,aa,bb,app->app_count.last_trig,app->app_count.trig_start);
+
+							if((aa>(30*app->app_para.fs))\
+							    &&(bb>(60*app->app_para.fs))){
+							    app->is_trig_start=0;
+							iws_trig_pgaget.trig=0;
+
+							}
+						}
+						//printf(CYAN"app->is_trig=%d,app->is_trig_start=%d\n"NONE,app->is_trig,app->is_trig_start);
+						if(app->is_trig_start==1){//Ò»µ©ÊÂ¼þ¿ªÊ¼
+							//printf(GREEN"is_trig_start\n"NONE);
+							psa_struct_2(fir_list_async,(float)app->app_para.fs,iws_trig_psaget.zuni,\
+								&(iws_trig_psaget.period[0]),&(iws_trig_psaget.result[0][0]),\
+								&(iws_trig_psaget.dx[0][0]),&(iws_trig_psaget.x2[0][0]),\
+								&(iws_trig_psaget.y0[0][0]),&(iws_trig_psaget.y1[0][0]),\
+								&(iws_trig_psaget.first));
+							//int final_liedu_pgv;
+//int PGA_V_G(FIR_LIST *i_fir_list,BAND_PASS_RESULT *band_pass_data,int *count,int timespan,int *trig,int PGV_type)
+							//int pga_ret;												                        FENG BIAO_11_12			
+								//printf(LIGHT_BLUE"before PGA_V_G\n"NONE);
+
+
+
+							//pga_ret=PGA_V_G(fir_list_async,\
+								&(iws_trig_pgaget.band_pass_data),\
+								&(iws_trig_pgaget.countt),\
+								1,&(iws_trig_pgaget.trig),\
+								iws_trig_pgaget.PGV_type);
+
+
+
+
+
+							//pga_ret=PGA_V_G2(fir_list_async,\                                               \\FENG BIAO_11_12
+							//	&(iws_trig_pgaget.band_pass_data),\                                           \\FENG BIAO_11_12
+							//	&(iws_trig_pgaget.countt),\													  \\FENG BIAO_11_12
+							//	1,&(iws_trig_pgaget.trig),\                                                   \\FENG BIAO_11_12
+							//	iws_trig_pgaget.PGV_type,app->iws_para.filter_chose);                         \\FENG BIAO_11_12
+							/*
+	iws_trig_pgaget->multiple_PGA=3.73;
+	iws_trig_pgaget->increment_PGA=-1.23;
+	iws_trig_pgaget->multiple_PGV=3.61;
+	iws_trig_pgaget->increment_PGV=2.72;
+							*/
+							if(pga_ret==2){//Ëã³öÁËÁÒ¶ÈÖµ£¬¸üÐÂ´¥·¢ÐÅÏ¢
+								//printf("iws_trig_pgaget.band_pass_data.final_PGA=%f\n",iws_trig_pgaget.band_pass_data.final_PGA);
+								//printf("ipga=%f\n",floattest_ipga1(iws_trig_pgaget.band_pass_data.final_PGA,iws_trig_pgaget.multiple_PGA,iws_trig_pgaget.increment_PGA));
+								// printf("iws_trig_pgaget.band_pass_data.final_PGA=%f\n",\
+								// 	iws_trig_pgaget.band_pass_data.final_PGA);
+								// printf("iws_trig_pgaget.band_pass_data.final_PGA_component[0]=%f\n",\
+								// 	iws_trig_pgaget.band_pass_data.final_PGA_component[0]);
+								// printf("iws_trig_pgaget.band_pass_data.final_PGV=%f\n",\
+								// 	iws_trig_pgaget.band_pass_data.final_PGV);
+								// printf("iws_trig_pgaget.band_pass_data.final_PGV_component[0]=%f\n",\
+								// 	iws_trig_pgaget.band_pass_data.final_PGV_component[0]);
+								printf("iws_trig_pgaget.band_pass_data.final_PGD=%f\n",\
+									iws_trig_pgaget.band_pass_data.final_PGD);
+								printf("iws_trig_pgaget.band_pass_data.final_PGD_component[0]=%f\n",\
+									iws_trig_pgaget.band_pass_data.final_PGD_component[0]);
+								printf("fir_list_async->band_pass_dataD[0]=%f\n",\
+									fir_list_async->band_pass_dataD[0]);
+								printf("fir_list_async->band_pass_dataD[4]=%f\n",\
+									fir_list_async->band_pass_dataD[4]);
+								printf("fir_list_async->dataD[0]=%f\n",\
+									fir_list_async->dataD[0]);
+								printf("fir_list_async->dataD[4]=%f\n",\
+									fir_list_async->dataD[4]);
+								
+								//fir_list1_async
+								//exit(0);
+
+
+								// iws_trig_pgaget.band_pass_data.final_PGA=5000;
+								// iws_trig_pgaget.band_pass_data.final_PGV=50;
+								// int final_liedu_pga=(int)10*Intensity_calculation(iws_trig_pgaget.band_pass_data.final_PGA,iws_trig_pgaget.multiple_PGA,iws_trig_pgget.increment_PGA,iws_trig_pgaget.band_pass_data.final_PGV,iws_trig_pgaget.multiple_PGV,iws_trig_pgaget.increment_PGV);
+								int final_liedu_pga=(int)10*New_Intensity_calculation(iws_trig_pgaget.band_pass_data.final_PGA,iws_trig_pgaget.band_pass_data.final_PGV,3);
+								//int final_liedu_pga=(int)10*(floattest_ipga1(iws_trig_pgaget.band_pass_data.final_PGA/10,iws_trig_pgaget.multiple_PGA,iws_trig_pgaget.increment_PGA));
+								//int final_liedu_pgv=(int)(10*floattest_ipgv1(iws_trig_pgaget.band_pass_data.final_PGV,iws_trig_pgaget.multiple_PGV,iws_trig_pgaget.increment_PGV));
+								//printf(RED"final_liedu_pga=%d\n"NONE,final_liedu_pga);
+								//printf(LIGHT_BLUE"pga_ret=%d\n"NONE,pga_ret);
+								iws_do_trig_pre(&(iws_trig_pgaget.band_pass_data)/*BAND_PASS_RESULT *band_pass_data*/,&(iws_trig_psaget.result[0][0]),final_liedu_pga,iws_trig_psaget.utc_time_imt,sta_lta,fir_list_async->utc_second-iws_trig_psaget.trig_start[0]);
+								for(ifor=0;ifor<6;ifor++)
+								{
+
+									if((app->iws_server[ifor].status.isconnect==1)&&(app->iws_server[ifor].mode>1)){
+										app->iws_server[ifor].sig_trig_ti++;
+										printf(PURPLE"server %d ready app->iws_server[ifor].mode=%d\n"NONE,ifor,app->iws_server[ifor].mode);
+
+									}
+								}
+								app->app_sig.sig_trig_ti_write_buf_total++;
+								app->app_sig.sig_trig_ti_write_buf=app->app_sig.sig_trig_ti_write_buf_total%1000;
+							}
+						}
+ 					}
+					app->listnow=fir_list_async;
+					fir_list_async=fir_list_async->next;
+					}
+					alg_pre_coutn_resample++;
+				}
+				else{//ºöÂÔ
+
+				}
+				//printf("resample2_ret=%d\n",resample2_ret);
+			}
+			else if(alg_pre_count<AVG_SECOND*app->app_para.fs){//			alg_pre_count++;//30*app->app_para.fs
+			//if(alg_pre_count>app->iws_para.firlen+200){//ÓÐÒ»Ð©Êý¾Ýºó¿ªÊ¼×öÖØ²ÉÑù
+				if(alg_pre_count<=5*app->app_para.fs)
+				{
+
+				}
+				else
+				{
+				avg_data[0]+=fir_list1_async->data[0];
+				avg_data[1]+=fir_list1_async->data[1];
+				avg_data[2]+=fir_list1_async->data[2];
+				if(alg_pre_count==(AVG_SECOND*app->app_para.fs-1)){
+					avg_data[0]=avg_data[0]/(AVG_SECOND*app->app_para.fs-1-5*app->app_para.fs);//fir_list1_async->data[0];
+					avg_data[1]=avg_data[1]/(AVG_SECOND*app->app_para.fs-1-5*app->app_para.fs);//fir_list1_async->data[0];
+					avg_data[2]=avg_data[2]/(AVG_SECOND*app->app_para.fs-1-5*app->app_para.fs);//fir_list1_async->data[0];
+
+				}
+			}
+				fir_list1_async=fir_list1_async->next;//Ã¿µÃµ½Ò»¸öÐÂ²ÉÑù£¬Ö¸ÕëºóÒÆ
+				
+			}
+			else{
+				fir_list1_async->data[0]=fir_list1_async->data[0]-avg_data[0];
+				fir_list1_async->data[1]=fir_list1_async->data[1]-avg_data[1];
+				fir_list1_async->data[2]=fir_list1_async->data[2]-avg_data[2];
+				fir_list1_async=fir_list1_async->next;//Ã¿µÃµ½Ò»¸öÐÂ²ÉÑù£¬Ö¸ÕëºóÒÆ
+
+			}
+			//printf("app->app_sig.sig_can_alg=%d\n",app->app_sig.sig_can_alg);
+	        pthread_mutex_lock(&(app->app_mut[MUTEX_LOCK_IS_CAN_ALG]));
+	        	app->app_sig.sig_can_alg--;
+			pthread_mutex_unlock(&(app->app_mut[MUTEX_LOCK_IS_CAN_ALG]));
+			
+			// fir_list_async=fir_list_async->next;
+			// fir_list1_async=fir_list1_async->next;
+				//alg_pre_count++;
+			//printf(RED"app->app_para.ad_ch_select=%d\n"NONE,app->app_para.ad_ch_select);
+		}
+		else{
+			int sleep_time;
+			sleep_time=2000;//(int)(1/app->app_para.fs*900000);
+			//printf(RED"app->app_para.fs=%d,1/app->app_para.fs=%f,sleep_time=%d,app->app_sig.sig_can_alg=%d\n"NONE,app->app_para.fs,1/app->app_para.fs,sleep_time,app->app_sig.sig_can_alg);
+			usleep(sleep_time);
+		}
+	}
+	return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 int async_alg_main(APP_S *app)//异步算法处理过程
 {
@@ -2776,9 +3260,12 @@ int async_alg_main(APP_S *app)//异步算法处理过程
 				// printf("avg_data[0]=%f\n",avg_data[0]);
 				// printf("avg_data[1]=%f\n",avg_data[1]);
 				// printf("avg_data[2]=%f\n",avg_data[2]);
-				// fir_list1_async->data[0]=fir_list1_async->data[0]-avg_data[0];
+				//printf("avg_data[0]=%d,avg_data[1]=%d,avg_data[2]=%d\n",avg_data[0],avg_data[1],avg_data[2]);
+				//printf("before fir_list1_async->data[0]=%d,fir_list1_async->data[1]=%d,fir_list1_async->data[2]=%d\n",fir_list1_async->data[0],fir_list1_async->data[1],fir_list1_async->data[2]);
+				fir_list1_async->data[0]=fir_list1_async->data[0]-avg_data[0];
 				fir_list1_async->data[1]=fir_list1_async->data[1]-avg_data[1];
 				fir_list1_async->data[2]=fir_list1_async->data[2]-avg_data[2];
+				//printf("after fir_list1_async->data[0]=%d,fir_list1_async->data[1]=%d,fir_list1_async->data[2]=%d\n",fir_list1_async->data[0],fir_list1_async->data[1],fir_list1_async->data[2]);
 				int resample2_ret=resample2(fir_list1_async,&app->iws_para.location,fir_list_async,&app->iws_para.first_time,2);
 
 				//>>触发测试
@@ -3076,29 +3563,31 @@ int async_alg_main(APP_S *app)//异步算法处理过程
 			}
 			else if(alg_pre_count<AVG_SECOND*app->app_para.fs){//			alg_pre_count++;//30*app->app_para.fs
 			//if(alg_pre_count>app->iws_para.firlen+200){//有一些数据后开始做重采样
-				if(alg_pre_count<=5*app->app_para.fs)
-				{
+				if(alg_pre_count<=5*app->app_para.fs){
 
 				}
-				else
-				{
-				avg_data[0]+=fir_list1_async->data[0];
-				avg_data[1]+=fir_list1_async->data[1];
-				avg_data[2]+=fir_list1_async->data[2];
-				if(alg_pre_count==(AVG_SECOND*app->app_para.fs-1)){
-					avg_data[0]=avg_data[0]/(AVG_SECOND*app->app_para.fs-1-5*app->app_para.fs);//fir_list1_async->data[0];
-					avg_data[1]=avg_data[1]/(AVG_SECOND*app->app_para.fs-1-5*app->app_para.fs);//fir_list1_async->data[0];
-					avg_data[2]=avg_data[2]/(AVG_SECOND*app->app_para.fs-1-5*app->app_para.fs);//fir_list1_async->data[0];
+				else{
+					avg_data[0]+=fir_list1_async->data[0];
+					avg_data[1]+=fir_list1_async->data[1];
+					avg_data[2]+=fir_list1_async->data[2];
+					if(alg_pre_count==(AVG_SECOND*app->app_para.fs-1)){
+						avg_data[0]=avg_data[0]/(AVG_SECOND*app->app_para.fs-1-5*app->app_para.fs);//fir_list1_async->data[0];
+						avg_data[1]=avg_data[1]/(AVG_SECOND*app->app_para.fs-1-5*app->app_para.fs);//fir_list1_async->data[0];
+						avg_data[2]=avg_data[2]/(AVG_SECOND*app->app_para.fs-1-5*app->app_para.fs);//fir_list1_async->data[0];
 
+					}
 				}
-			}
 				fir_list1_async=fir_list1_async->next;//每得到一个新采样，指针后移
 				
 			}
 			else{
+				printf("avg_data[0]=%d,avg_data[1]=%d,avg_data[2]=%d\n",avg_data[0],avg_data[1],avg_data[2]);
+				printf("before fir_list1_async->data[0]=%d,fir_list1_async->data[1]=%d,fir_list1_async->data[2]=%d\n",fir_list1_async->data[0],fir_list1_async->data[1],fir_list1_async->data[2]);
 				fir_list1_async->data[0]=fir_list1_async->data[0]-avg_data[0];
 				fir_list1_async->data[1]=fir_list1_async->data[1]-avg_data[1];
 				fir_list1_async->data[2]=fir_list1_async->data[2]-avg_data[2];
+				printf("after fir_list1_async->data[0]=%d,fir_list1_async->data[1]=%d,fir_list1_async->data[2]=%d\n",fir_list1_async->data[0],fir_list1_async->data[1],fir_list1_async->data[2]);
+
 				fir_list1_async=fir_list1_async->next;//每得到一个新采样，指针后移
 
 			}

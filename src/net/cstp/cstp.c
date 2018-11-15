@@ -1325,16 +1325,138 @@ int get_time_data_ram(void *index)
     return 0;
 }
 
+int check_pak_wave(IWS_UP_WAVEDATA *iws_up_wavedata)
+{
+    return 0;
+}
+
+int check_pak_wave_ext(IWS_UP_WAVEDATA_EXT * iws_up_wavedata_ext,IWS_RQ_TIME *iws_rq_time)
+{
+    //if()
+    int is_start_valid,is_end_valid;
+    if((iws_up_wavedata_ext->wcts[0]=='W')){
+        if(iws_up_wavedata_ext->iws_ext_head.utc_time[0]>=iws_rq_time->timestart){
+            is_start_valid=1;
+        }
+        else{
+            is_start_valid=0;
+        }
+        if(iws_up_wavedata_ext->iws_ext_head.utc_time[0]<=iws_rq_time->timeend){
+            is_end_valid=1;
+
+        }
+        else{
+            is_end_valid=0;
+        }
+        //printf(GREEN"iws_up_wavedata_ext->iws_ext_head.utc_time[0]=%d\n,\
+            iws_rq_time->timestart=%d\n,\
+            iws_rq_time->timeend=%d\n"NONE,\
+            iws_up_wavedata_ext->iws_ext_head.utc_time[0],\
+            iws_rq_time->timestart,\
+            iws_rq_time->timeend);
+        if(is_start_valid&&is_end_valid){
+            return 0;
+        }
+        else{
+            return -1;
+        }
+        
+    }
+    else{
+        return -100;//data error
+    }
+    
+    
+}
+
+
+int sig_is_rq_data_ready=0;
+
+IWS_UP_WAVEDATA_EXT * iws_up_wavedata_ext_globe;
+
 
 int get_time_data_file(void * index)
 {
     IWS_RQ_TIME *iws_rq_time =(IWS_RQ_TIME *)index;
+    FILE * rq_fp;
+    APP_S * app=(APP_S *)iws_rq_time->para;
+    IWS_UP_WAVEDATA_EXT * iws_up_wavedata_ext=malloc(sizeof(IWS_UP_WAVEDATA_EXT));
+    iws_up_wavedata_ext_globe=iws_up_wavedata_ext;
+    int readcount=0,sendcount=0;
+    int check_ret;
+    int check_file_ret;
+    do{
+        rq_fp=fopen(app->iws_file_list[iws_rq_time->file_index].name,"rb");
+        int readlen,realwrite;
+        if(rq_fp==NULL){
+            perror("rp_fp open error");
+        }
+        else{
+            while(feof(rq_fp)==0){
+                if(sig_is_rq_data_ready==0){
+                    readlen=myread((unsigned char *)iws_up_wavedata_ext,sizeof(IWS_UP_WAVEDATA_EXT),rq_fp);
+                    readcount+=readlen;
+                    //printf(BLUE"readcount=%d\n"NONE,readcount);
+                    iws_up_wavedata_ext->wcts[1]='S';
+                    if(readlen==sizeof(IWS_UP_WAVEDATA_EXT)){
+                        check_ret=check_pak_wave_ext(iws_up_wavedata_ext,iws_rq_time);
+                        if(check_ret==0){
+                            sig_is_rq_data_ready=1;
+                            //realwrite=writenbytes((unsigned char *)&iws_up_wavedata_ext->wcts[0],\
+                                app->iws_server[iws_rq_time->server_index].fid,\
+                                sizeof(IWS_UP_WAVEDATA)); 
+                            sendcount+=realwrite;
+                            //printf(GREEN"sendcount=%d\n"NONE,sendcount);
+                            
+                        }
+                        else if(check_ret==-1){
+                            continue;
+                        }
+                        else if(check_ret==-100){
+                            //iws_rq_time->isused=0;
+                            //fclose(rq_fp);
+                            break;
+                        }
+
+
+                    }
+                    else{
+
+                        //fclose(rq_fp);
+                        break;
+                        printf(RED"readlen=%d\n"NONE,readlen);
+                        printf(RED"readcount=%d\n"NONE,readcount);
+                        printf(GREEN"sendcount=%d\n"NONE,sendcount);
+                    }
+                }
+                usleep(5);
+
+            }
+            fclose(rq_fp);
+        }
+        iws_rq_time->file_index++;
+        if(app->iws_file_list[iws_rq_time->file_index].tv_sec<iws_rq_time->timeend){
+            check_file_ret=1;
+        }
+        else{
+            check_file_ret=0;
+        }
+        printf(RED"app->iws_file_list[iws_rq_time->file_index].tv_sec=%d\n,\
+            iws_rq_time->timeend=%d\n,\
+            check_file_ret=%d\n"NONE,\
+            app->iws_file_list[iws_rq_time->file_index].tv_sec,\
+            iws_rq_time->timeend,\
+            check_file_ret);
+    }while(check_file_ret);
+    iws_rq_time->isused=0;
+    return 0;
+
     for(;;)
     {
         sleep(1);
         printf(GREEN"YES = %d\n"NONE,iws_rq_time->timestart);
         printf(GREEN"iws_rq_time->server_index = %d\n"NONE,iws_rq_time->server_index);
-        printf(GREEN"iws_rq_time->len = %llu\n"NONE,iws_rq_time->len);
+        printf(GREEN"iws_rq_time->len = %d\n"NONE,iws_rq_time->len);
         printf(GREEN"iws_rq_time->date_time.tv_sec = %d\n"NONE,iws_rq_time->date_time.tv_sec);
 
  
@@ -1348,7 +1470,10 @@ int check_timerq(IWS_RQ_TIME *iws_rq_time)
 {
     #define DATARAMLEN 10800
     unsigned int timed=iws_rq_time->date_time.tv_sec-iws_rq_time->timestart;
-    printf(BLUE"timed=%d,ws_rq_time->date_time.tv_sec=%d,iws_rq_time->timestart=%d\n"NONE,timed,iws_rq_time->date_time.tv_sec\
+    printf(BLUE"timed=%d,\
+        iws_rq_time->date_time.tv_sec=%d,\
+        iws_rq_time->timestart=%d\n"NONE,\
+        timed,iws_rq_time->date_time.tv_sec\
         ,iws_rq_time->timestart);
     if(timed<0)
         return -1;
@@ -1374,7 +1499,39 @@ int cstp_newthread(pthread_t * newthread,int  (* threadfun)(void *),void * paras
 
 
 
+int file_Traversal(APP_S * app,int index)
+{
+    int ifor;
+    int d_time;
+    for(ifor=app->globe_steim2_file_index;ifor>=0;ifor--)
+    {
+        //printf(BLUE"file:%s,function：%s,line:%d\n"NONE,__FILE__,__FUNCTION__,__LINE__);
 
+        if(app->iws_file_list[ifor].isused==1){
+            //printf(BLUE"file:%s,function：%s,line:%d\n"NONE,__FILE__,__FUNCTION__,__LINE__);
+
+            d_time=app->iws_file_list[ifor].tv_sec-app->iws_rq_time[index].timestart;
+            //printf(BLUE"ifor=%d,file:%s,function：%s,line:%d\n"NONE,ifor,__FILE__,__FUNCTION__,__LINE__);
+            //printf(GREEN"now check=%s,d_time=%d\n"NONE,\
+                app->iws_file_list[ifor].name,\
+                d_time);
+            if(d_time<0){
+                app->iws_rq_time[index].file_index=ifor;
+                break;
+            }
+        }
+        
+        
+    }
+    if(ifor==0){
+        return -1;
+    }
+    else{
+        return ifor;
+    }
+      
+
+}
 
 
 
@@ -1386,6 +1543,8 @@ int timedata_rq_process(const char * buf,int len,int server_index,APP_S * app)//
     int paras=server_index;
     int ifor;
     IWS_TIMEDATA_REQUEST *timerq=(IWS_TIMEDATA_REQUEST *)buf;
+    printf(RED"timerq->type_lable[0]=%c,timerq->type_lable[1]=%c,timerq->time_mark=%d\n"NONE,\
+        timerq->type_lable[0],timerq->type_lable[1],timerq->time_mark);
     int can_use_index;
     int is_ok=0;
     for(ifor=0;ifor<4;ifor++)
@@ -1394,9 +1553,12 @@ int timedata_rq_process(const char * buf,int len,int server_index,APP_S * app)//
         {
             can_use_index=ifor;
             app->iws_rq_time[ifor].isused=1;
+            app->iws_rq_time[ifor].para=app;
             app->iws_rq_time[ifor].server_index=server_index;
-            app->iws_rq_time[ifor].timestart=timerq->time_mark;
-            app->iws_rq_time[ifor].len=timerq->time_length;
+            app->iws_rq_time[ifor].timestart=htonl(timerq->time_mark);
+
+            app->iws_rq_time[ifor].len=htonl(timerq->time_length);
+            app->iws_rq_time[ifor].timeend=app->iws_rq_time[ifor].timestart+app->iws_rq_time[ifor].len;
             app->iws_rq_time[ifor].t_t=app->app_count.date_time.tv_sec-timerq->time_mark;
             app->iws_rq_time[ifor].date_time.tv_sec=app->app_count.date_time.tv_sec;
             is_ok=1;
@@ -1408,10 +1570,28 @@ int timedata_rq_process(const char * buf,int len,int server_index,APP_S * app)//
     }
     int ck_datalocation;
     ck_datalocation=check_timerq(&app->iws_rq_time[can_use_index]);//检查时间
+    ck_datalocation=file_Traversal(app,can_use_index);
+    printf(BLUE"ck_datalocation=%d\n"NONE,ck_datalocation);
     if(ck_datalocation==-1){
         return -2;
     }
-    printf(BLUE"ck_datalocation=%d\n"NONE,ck_datalocation);
+    
+
+    if(app->globe_steim2_file_index==ck_datalocation){
+        printf(BLUE"DATA is in now write file;ck_datalocation=%d\n"NONE,ck_datalocation);
+        return -2; 
+    }
+    else{
+        printf(RED"app->iws_file_list[ifor].name=%s\n",app->iws_file_list[ck_datalocation].name);
+        int ii=cstp_newthread(&newthread,get_time_data_file,(void *)&app->iws_rq_time[can_use_index]);
+        printf(PURPLE"timerq:%d\n"NONE,timerq->time_mark);
+        if(ii){
+            return -3;
+        }
+        
+    }
+
+    return 0;
 
     if(ck_datalocation==0){//需要到文件中读取
         int ii=cstp_newthread(&newthread,get_time_data_file,(void *)&app->iws_rq_time[can_use_index]);
@@ -1482,37 +1662,77 @@ int debug_buf(char * p,int len,char * disp)
 #define TRIG_NOWAVE 3
 update_point(int mode,int server_index)//改变模式时重新配置发送指针
 {
-    switch(mode)
-    {
-        case WAVEMODE:
-            
-            //app.iws_server[server_index].sig_trig_wave=0;
-            app.is_trig_start=0;
-            app.iws_server[server_index].is_trig_start=0;
-            //app.iws_server[server_index].sig_trig_wave=0;
-            app.iws_server[server_index].steim2_buf=app.buffer.steim2_out_buf[STEIM2_NOW];//回复连续波形模式，更新波形组包指针
-        break;
-        case TRIG_WAVE:
-            app.is_trig_start=0;
-            //app.is_trig_start=0;//TODO目前这个处理，可能造成切换瞬间错过触发
-            //app.is_trig_start=0;
-            //app.iws_server[server_index].sig_trig_wave=0;
-            app.iws_server[server_index].sig=0;//清空连续波形时未发送缓存
-            printf(RED"connect app.buffer.steim2_out_buf[STEIM2_NOW]->utc_time[0]=%d\n"NONE,app.buffer.steim2_out_buf[STEIM2_NOW]->utc_time[0]);
-            app.iws_server[server_index].status_send_buf=app.buffer.status_out_buf[STATUS_NOW];//状态信息包指针更新
-        break;
-        case TRIG_NOWAVE:
-            app.is_trig_start=0;//TODO目前这个处理，可能造成切换瞬间错过触发
-            app.iws_server[server_index].is_trig_start=0;
-            //app.is_trig_start=0;
-            //app.iws_server[server_index].sig_trig_wave=0;
-            app.iws_server[server_index].sig=0;//清空连续波形时未发送缓存
-            printf(RED"connect app.buffer.steim2_out_buf[STEIM2_NOW]->utc_time[0]=%d\n"NONE,app.buffer.steim2_out_buf[STEIM2_NOW]->utc_time[0]);
-            app.iws_server[server_index].status_send_buf=app.buffer.status_out_buf[STATUS_NOW];//连接成功,初始化发送之争
-        break;
-        default:
-        break;
+    if((app.iws_server[server_index].protocol==SERVER_PROTOCOL_CSTP)&&(app.iws_server[server_index].version==SERVER_PROTOCOL_CSTP_VERSION_10)){
+        switch(mode)
+        {
+            case WAVEMODE:
+                
+                //app.iws_server[server_index].sig_trig_wave=0;
+                app.is_trig_start=0;
+                app.iws_server[server_index].is_trig_start=0;
+                //app.iws_server[server_index].sig_trig_wave=0;
+                app.iws_server[server_index].steim2_buf=app.buffer.steim2_out_buf[STEIM2_NOW];//回复连续波形模式，更新波形组包指针
+            break;
+            case TRIG_WAVE:
+                app.is_trig_start=0;
+                //app.is_trig_start=0;//TODO目前这个处理，可能造成切换瞬间错过触发
+                //app.is_trig_start=0;
+                //app.iws_server[server_index].sig_trig_wave=0;
+                app.iws_server[server_index].sig=0;//清空连续波形时未发送缓存
+                printf(RED"connect app.buffer.steim2_out_buf[STEIM2_NOW]->utc_time[0]=%d\n"NONE,app.buffer.steim2_out_buf[STEIM2_NOW]->utc_time[0]);
+                app.iws_server[server_index].status_send_buf=app.buffer.status_out_buf[STATUS_NOW];//状态信息包指针更新
+            break;
+            case TRIG_NOWAVE:
+                app.is_trig_start=0;//TODO目前这个处理，可能造成切换瞬间错过触发
+                app.iws_server[server_index].is_trig_start=0;
+                //app.is_trig_start=0;
+                //app.iws_server[server_index].sig_trig_wave=0;
+                app.iws_server[server_index].sig=0;//清空连续波形时未发送缓存
+                printf(RED"connect app.buffer.steim2_out_buf[STEIM2_NOW]->utc_time[0]=%d\n"NONE,app.buffer.steim2_out_buf[STEIM2_NOW]->utc_time[0]);
+                app.iws_server[server_index].status_send_buf=app.buffer.status_out_buf[STATUS_NOW];//连接成功,初始化发送之争
+            break;
+            default:
+            break;
+        }
+
     }
+    else{
+        switch(mode)
+        {
+            case WAVEMODE:
+                
+                //app.iws_server[server_index].sig_trig_wave=0;
+                app.is_trig_start=0;
+                app.iws_server[server_index].is_trig_start=0;
+                //app.iws_server[server_index].sig_trig_wave=0;
+                app.iws_server[server_index].iws_pak_buf.wave_buf_index.now=\
+                app.app_sig.sig_wave_data_write_buf_total;
+                break;
+            case TRIG_WAVE:
+                app.is_trig_start=0;
+                //app.is_trig_start=0;//TODO目前这个处理，可能造成切换瞬间错过触发
+                //app.is_trig_start=0;
+                //app.iws_server[server_index].sig_trig_wave=0;
+                app.iws_server[server_index].sig=0;//清空连续波形时未发送缓存
+                printf(RED"connect app.buffer.steim2_out_buf[STEIM2_NOW]->utc_time[0]=%d\n"NONE,app.buffer.steim2_out_buf[STEIM2_NOW]->utc_time[0]);
+                app.iws_server[server_index].status_send_buf=app.buffer.status_out_buf[STATUS_NOW];//状态信息包指针更新
+            break;
+            case TRIG_NOWAVE:
+                app.is_trig_start=0;//TODO目前这个处理，可能造成切换瞬间错过触发
+                app.iws_server[server_index].is_trig_start=0;
+                //app.is_trig_start=0;
+                //app.iws_server[server_index].sig_trig_wave=0;
+                app.iws_server[server_index].sig=0;//清空连续波形时未发送缓存
+                printf(RED"connect app.buffer.steim2_out_buf[STEIM2_NOW]->utc_time[0]=%d\n"NONE,app.buffer.steim2_out_buf[STEIM2_NOW]->utc_time[0]);
+                app.iws_server[server_index].status_send_buf=app.buffer.status_out_buf[STATUS_NOW];//连接成功,初始化发送之争
+            break;
+            default:
+            break;
+        }
+
+
+    }
+    return 0;
 }
 
 
@@ -1807,10 +2027,18 @@ int steim2_mk_ext_wave_pak(IWS_UP_WAVEDATA_EXT * iws_up_wavedata_ext,IWS_STEIM2_
     iws_up_wavedata_ext->iws_ext_head.utc_time[0]=steim2_buf->utc_time[0];
     iws_up_wavedata_ext->iws_ext_head.utc_time[1]=steim2_buf->utc_time[1];
     steim2_mk_wave_pak(&(iws_up_wavedata_ext->wcts[0]),steim2_buf,pak_num);
+    //printf(BLUE"iws_up_wavedata_ext->wcts[0]=%c\n"NONE,iws_up_wavedata_ext->wcts[0]);
     return 0;
 }
 
 
+int copy_steim2_data_2_send_buf(IWS_UP_WAVEDATA * iws_up_wavedata,IWS_UP_WAVEDATA_EXT *iws_up_wavedata_ext)
+{
+    memcpy(&iws_up_wavedata->wcts[0],&iws_up_wavedata_ext->wcts[0],sizeof(IWS_UP_WAVEDATA));
+    iws_up_wavedata->wcts[1]='C';
+    //printf(RED"iws_up_wavedata->>wcts[0]=%c\n"NONE,iws_up_wavedata->wcts[0]);
+    return 0;
+}
 
 
 
@@ -1886,6 +2114,26 @@ int steim2_mk_wave_pak(IWS_UP_WAVEDATA * iws_up_wavedata,IWS_STEIM2_OUT * steim2
 
     return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 int steim2_mk_trig_ti_pak(IWS_UP_TI * iws_up_ti,int pak_num)
 {
@@ -2100,26 +2348,35 @@ int is_first_send=0;
 
 int get_start_buf(int connect_index)
 {
-    int ifor;
-    pthread_mutex_lock(&app.app_mut[9]);
-        app.iws_server[connect_index].steim2_buf=app.buffer.steim2_out_buf[STEIM2_NOW];//连接成功,初始化发送之争
-        //printf(BLUE"connect_index=%d,app->iws_server[connect_index].steim2_buf.index=%d,sig=%d\n"NONE,connect_index,app->iws_server[connect_index].steim2_buf->index,app->iws_server[connect_index].sig);
-    pthread_mutex_unlock(&app.app_mut[9]);
-    for(ifor=0;ifor<app.iws_server[connect_index].sig;ifor++)
-    {
-        app.iws_server[connect_index].steim2_buf=app.iws_server[connect_index].steim2_buf->prev;//连接成功,初始化发送之争
+
+    if((app.iws_server[connect_index].protocol==SERVER_PROTOCOL_CSTP)&&(app.iws_server[connect_index].version==SERVER_PROTOCOL_CSTP_VERSION_10)){
+        int ifor;
+        pthread_mutex_lock(&app.app_mut[9]);
+            app.iws_server[connect_index].steim2_buf=app.buffer.steim2_out_buf[STEIM2_NOW];//连接成功,初始化发送之争
+            //printf(BLUE"connect_index=%d,app->iws_server[connect_index].steim2_buf.index=%d,sig=%d\n"NONE,connect_index,app->iws_server[connect_index].steim2_buf->index,app->iws_server[connect_index].sig);
+        pthread_mutex_unlock(&app.app_mut[9]);
+        for(ifor=0;ifor<app.iws_server[connect_index].sig;ifor++)
+        {
+            app.iws_server[connect_index].steim2_buf=app.iws_server[connect_index].steim2_buf->prev;//连接成功,初始化发送之争
+        }
+        printf(BLUE"connect_index=%d,\
+            app->iws_server[connect_index].steim2_buf.index=%d,\
+            sig=%d,\
+            app->iws_server[connect_index].is_first_send=%d\
+            \n"NONE,\
+            connect_index,\
+            app.iws_server[connect_index].steim2_buf->index,\
+            app.iws_server[connect_index].sig,\
+            app.iws_server[connect_index].is_first_send
+            );
+        return 0;
     }
-    printf(BLUE"connect_index=%d,\
-        app->iws_server[connect_index].steim2_buf.index=%d,\
-        sig=%d,\
-        app->iws_server[connect_index].is_first_send=%d\
-        \n"NONE,\
-        connect_index,\
-        app.iws_server[connect_index].steim2_buf->index,\
-        app.iws_server[connect_index].sig,\
-        app.iws_server[connect_index].is_first_send
-        );
-    return 0;
+    else{
+        app.iws_server[connect_index].iws_pak_buf.wave_buf_index.now=\
+        app.app_sig.sig_wave_data_write_buf_total;
+    }
+
+
 }
 
 
@@ -2152,7 +2409,165 @@ int mk_wave_data_check(IWS_UP_WAVEDATA * iws_up_wavedata,int server_index)
 
 
 
-int iws_write_process(int fid,int connect_index,APP_S * app)//写处理框架
+
+
+
+
+
+
+
+int iws_write_process_v20(int fid,int connect_index,APP_S * app)//写处理框架
+{
+    //return 2;
+    //printf(PURPLE"inside function %s line:%d\n"NONE,__FUNCTION__,__LINE__);
+    //printf(RED"inside function %s line:%d\n"NONE,__FUNCTION__,__LINE__);
+    char buf[1024];
+    int realread=0,realsend=0;
+    int ifor;
+    int is_data_ready=(app->app_sig.sig_wave_data_write_buf_total-\
+        app->iws_server[connect_index].iws_pak_buf.wave_buf_index.now);
+    while((is_data_ready>0)&&(app->iws_server[connect_index].mode==1))
+    {
+
+       
+        //printf("app->iws_server[connect_index].sig=%d,app->iws_server[connect_index].mode=%d\n",app->iws_server[connect_index].sig,app->iws_server[connect_index].mode);       
+        //mk_wave_pak(connect_index);
+        // if(app->iws_server[connect_index].is_first_send==0)
+        // {
+        //     app->iws_server[connect_index].is_first_send=1;
+
+        //     pthread_mutex_lock(&app->app_mut[9]);
+        //         app->iws_server[connect_index].steim2_buf=app->buffer.steim2_out_buf[STEIM2_NOW];//连接成功,初始化发送之争
+        //         //printf(BLUE"connect_index=%d,app->iws_server[connect_index].steim2_buf.index=%d,sig=%d\n"NONE,connect_index,app->iws_server[connect_index].steim2_buf->index,app->iws_server[connect_index].sig);
+
+        //     pthread_mutex_unlock(&app->app_mut[9]);
+        //     for(ifor=0;ifor<app->iws_server[connect_index].sig;ifor++)
+        //     {
+        //         app->iws_server[connect_index].steim2_buf=app->iws_server[connect_index].steim2_buf->prev;//连接成功,初始化发送之争
+        //     }
+            
+        //     printf(BLUE"connect_index=%d,app->iws_server[connect_index].steim2_buf.index=%d,sig=%d\n"NONE,connect_index,app->iws_server[connect_index].steim2_buf->index,app->iws_server[connect_index].sig);
+
+        // }
+        if(0==app->iws_server[connect_index].is_first_send)//连接后首次发送数据则更新发送指针
+        {
+            app->iws_server[connect_index].is_first_send=1;
+            get_start_buf(connect_index);
+        }
+        int buf_index=app->iws_server[connect_index].iws_pak_buf.wave_buf_index.now%IWS_UP_WAVEDATA_EXT_NUM;
+        copy_steim2_data_2_send_buf(&app->iws_cstp[connect_index].iws_up_wavedata,&app->iws_wave_pak_ext[buf_index]);
+        app->iws_server[connect_index].iws_pak_buf.wave_buf_index.now++;
+        //steim2_mk_wave_pak(&app->iws_cstp[connect_index].iws_up_wavedata,app->iws_server[connect_index].steim2_buf,++(app->iws_cstp[connect_index].pak_num));
+        // printf(RED"connect_index=%d,app.buffer.steim2_out_buf[STEIM2_NOW].index=%d\n"NONE,connect_index,app->buffer.steim2_out_buf[STEIM2_NOW]->index);
+        // printf(GREEN"connect_index=%d,app->iws_server[connect_index].steim2_buf.index=%d\n"NONE,connect_index,app->iws_server[connect_index].steim2_buf->index);
+        //printf(LIGHT_BLUE"sig=%d,mode=%d\n"NONE,app->iws_server[connect_index].sig,app->iws_server[connect_index].mode);
+        //printf(PURPLE"\n\
+            buf_index=%d\n,\
+            app->iws_cstp[connect_index].iws_up_wavedata.wcts[0]=%c\n,\
+            app->app_sig.sig_wave_data_write_buf=%d\n,\
+            is_data_ready=%d\n,\
+            wave_buf_index.now=%d\n,\
+            app->app_sig.sig_wave_data_write_buf_total=%d\n"NONE,\
+            buf_index,\
+            app->iws_cstp[connect_index].iws_up_wavedata.wcts[0],\
+            app->app_sig.sig_wave_data_write_buf,\
+            is_data_ready,\
+            app->iws_server[connect_index].iws_pak_buf.wave_buf_index.now,\
+            app->app_sig.sig_wave_data_write_buf_total);
+        struct timespec date_time;//数据采集时间
+// printf("\nmy_iws_utc.year=%d\n",app->iws_cstp[connect_index].iws_up_wavedata.data_start_utc.year);
+// printf("my_iws_utc.yday=%d\n",app->iws_cstp[connect_index].iws_up_wavedata.data_start_utc.yday);
+// printf("my_iws_utc.hour=%d\n",app->iws_cstp[connect_index].iws_up_wavedata.data_start_utc.hour);
+// printf("my_iws_utc.min=%d\n",app->iws_cstp[connect_index].iws_up_wavedata.data_start_utc.min);
+// printf("my_iws_utc.sec=%d\n",app->iws_cstp[connect_index].iws_up_wavedata.data_start_utc.sec);
+
+        realsend=writenbytes(&app->iws_cstp[connect_index].iws_up_wavedata,fid,256);
+        clock_gettime(CLOCK_REALTIME, &date_time);
+        //debug_buf((char *)&app->iws_cstp[connect_index].iws_up_wavedata,realsend,"send to server data:");
+        //printf(GREEN"realsend=%d,date_time.tv_sec=%d,date_time.tv_nsec=%d\n"NONE,realsend,date_time.tv_sec,date_time.tv_nsec);
+        
+        // if(app->iws_server[connect_index].steim2_buf->ch_num==0){
+        //     int realwrite=mywrite(&app->iws_cstp[connect_index].iws_up_wavedata.data[0],192,fp_zzzzzzzzz);
+        // }
+
+        // printf(LIGHT_RED"app->iws_server[connect_index].steim2_buf=%d\n"NONE,app->iws_server[connect_index].steim2_buf);
+        // printf(LIGHT_RED"srm=%d\n"NONE,app->iws_cstp[connect_index].iws_up_wavedata.srm);
+        // printf(LIGHT_RED"sf=%d\n"NONE,app->iws_cstp[connect_index].iws_up_wavedata.sf);
+        // printf(LIGHT_RED"package_number=%d\n"NONE,app->iws_cstp[connect_index].iws_up_wavedata.package_number);
+        // printf(LIGHT_RED"datacount=%d\n"NONE,app->iws_cstp[connect_index].iws_up_wavedata.datacount);
+        // printf(LIGHT_RED"fs_factor=%d\n"NONE,app->iws_cstp[connect_index].iws_up_wavedata->fs_factor);
+        // printf(LIGHT_RED"fs_factor=%d\n"NONE,app->iws_cstp[connect_index].iws_up_wavedata->fs_factor);
+        // printf(LIGHT_RED"fs_factor=%d\n"NONE,app->iws_cstp[connect_index].iws_up_wavedata->fs_factor);
+        // printf(LIGHT_RED"fs_factor=%d\n"NONE,app->iws_cstp[connect_index].iws_up_wavedata->fs_factor);
+        app->iws_server[connect_index].steim2_buf=app->iws_server[connect_index].steim2_buf->next;
+        //exit(0);
+        //return realsend; 
+        is_data_ready=(app->app_sig.sig_wave_data_write_buf_total-\
+            app->iws_server[connect_index].iws_pak_buf.wave_buf_index.now);
+    }
+    //app.is_trig_start=1
+    if(sig_is_rq_data_ready==1){
+        writenbytes((unsigned char *)&iws_up_wavedata_ext_globe->wcts[0],\
+                    fid,\
+                    sizeof(IWS_UP_WAVEDATA));
+        sig_is_rq_data_ready=0;
+    }
+    if((app->iws_server[connect_index].mode==2)&&(app->iws_server[connect_index].sig_trig_wave>0))//触发传波形
+    {
+        //printf(GREEN"app->iws_server[connect_index].sig_trig_wave=%d\n"NONE,app->iws_server[connect_index].sig_trig_wave);
+        steim2_mk_trig_pak(&app->iws_cstp[connect_index].iws_up_wavedata,connect_index,++(app->iws_cstp[connect_index].pak_num));
+        mk_wave_data_check(&app->iws_cstp[connect_index].iws_up_wavedata,connect_index);
+        pthread_mutex_lock(&app->app_mut[connect_index]);
+            app->iws_server[connect_index].sig_trig_wave--;
+            if(app->iws_server[connect_index].is_trig_start==0){
+                app->iws_server[connect_index].sig_trig_wave=0;
+            }
+            //app->iws_server[connect_index].sig--;
+        pthread_mutex_unlock(&app->app_mut[connect_index]);
+        realsend+=writenbytes(&app->iws_cstp[connect_index].iws_up_wavedata,fid,256);
+        //debug_buf((char *)&app->iws_cstp[connect_index].iws_up_wavedata,realsend,"send to server data:");
+        //printf(GREEN"realsend=%d,app->iws_server[connect_index].sig_trig_wave=%d\n"NONE,realsend,app->iws_server[connect_index].sig_trig_wave);
+
+        //app->iws_server[connect_index].sig_trig_wave--;
+    }
+    if((app->iws_server[connect_index].mode>1)&&(app->iws_server[connect_index].sig_trig_ti>0))//触发传波形
+    {
+        app->iws_server[connect_index].sig_trig_ti--;
+        steim2_mk_trig_ti_pak(&app->iws_cstp[connect_index].iws_up_ti,++(app->iws_cstp[connect_index].pak_num));
+        mk_trig_ti_check(&app->iws_cstp[connect_index].iws_up_ti,connect_index);
+        realsend+=writenbytes(&app->iws_cstp[connect_index].iws_up_ti,fid,256);
+        //debug_buf((char *)&app->iws_cstp[connect_index].iws_up_ti,256,"ti:");
+    }
+    if((app->iws_server[connect_index].sig_status>0)&&(app->iws_server[connect_index].mode>1))//
+    {
+
+        app->iws_server[connect_index].sig_status--;
+        mk_si_pak(connect_index);
+        realread=writenbytes(&app->iws_cstp[connect_index].iws_up_si_pak,fid,256);
+        app->iws_server[connect_index].status_send_buf=app->iws_server[connect_index].status_send_buf->next;
+    }
+    if((app->iws_server[connect_index].mode==3))
+    {
+    }
+    //realread=writenbytes(app->app_server.connect[connect_index].sendbuf->data_start,fid,app->app_para.fs*sizeof(DATA_FRAME_GEO_S));
+    //write(sockfd,p_app->app_server.connect[connect_index].sendbuf->data_start,200*sizeof(DATA_FRAME_GEO_S));
+    //app->app_server.connect[connect_index].sig_send--;
+    //printf(GREEN"function：%s,line:%d,app.app_sig.sig_data_send=%d\n"NONE,__FUNCTION__,__LINE__,p_app->app_sig.sig_data_send);
+    //app->app_server.connect[connect_index].sendbuf=app->app_server.connect[connect_index].sendbuf->loopbufnext;
+    return realread; 
+}
+
+
+
+
+
+
+
+
+
+
+
+int iws_write_process_v10(int fid,int connect_index,APP_S * app)//写处理框架
 {
     //return 2;
     //printf(PURPLE"inside function %s line:%d\n"NONE,__FUNCTION__,__LINE__);
@@ -2189,7 +2604,7 @@ int iws_write_process(int fid,int connect_index,APP_S * app)//写处理框架
         steim2_mk_wave_pak(&app->iws_cstp[connect_index].iws_up_wavedata,app->iws_server[connect_index].steim2_buf,++(app->iws_cstp[connect_index].pak_num));
         // printf(RED"connect_index=%d,app.buffer.steim2_out_buf[STEIM2_NOW].index=%d\n"NONE,connect_index,app->buffer.steim2_out_buf[STEIM2_NOW]->index);
         // printf(GREEN"connect_index=%d,app->iws_server[connect_index].steim2_buf.index=%d\n"NONE,connect_index,app->iws_server[connect_index].steim2_buf->index);
-        // pthread_mutex_lock(&app->app_mut[connect_index]);
+        pthread_mutex_lock(&app->app_mut[connect_index]);
             app->iws_server[connect_index].sig--;
         pthread_mutex_unlock(&app->app_mut[connect_index]);
         //app->iws_server[connect_index].sig--;
@@ -2271,7 +2686,16 @@ int iws_write_process(int fid,int connect_index,APP_S * app)//写处理框架
     return realread; 
 }
 
-
+int iws_write_process(int fid,int connect_index,APP_S * app)//写处理框架
+{
+    if((app->iws_server[connect_index].protocol==SERVER_PROTOCOL_CSTP)&&(app->iws_server[connect_index].version==SERVER_PROTOCOL_CSTP_VERSION_10)){
+        iws_write_process_v10(fid,connect_index,app);
+    }
+    else{
+        iws_write_process_v20(fid,connect_index,app);
+    }
+    return 0;
+}
 
 
 
@@ -2457,6 +2881,7 @@ int iws_client1(APP_S * app)
     int on_connect=0;
     //int i_connect;//标记连接索引,以方便ad给信号
     int timeout;
+    app->iws_server[server_index].version=1;
     while(1){
         app->iws_server[server_index].status.isconnect=0;
         reg_status=-1;//重连时复位注册状态
