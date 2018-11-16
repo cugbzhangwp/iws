@@ -7435,6 +7435,7 @@ extern short d_d_d_d;
 
 int iws_do_trig_pre(BAND_PASS_RESULT *band_pass_data,float * result,int final_liedu_pga,long * utc_time_imt,float sta_lta,int rela_t)
 {
+
 	//printf(CYAN"utc_time_imt[0]=%d,utc_time_imt[1]=%d\n"NONE,utc_time_imt[0],utc_time_imt[1]);
 
 /*
@@ -7516,7 +7517,6 @@ int iws_do_trig_pre(BAND_PASS_RESULT *band_pass_data,float * result,int final_li
 	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ns_pga=band_pass_data->final_PGA_component[0];
 	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ns_pgv=band_pass_data->final_PGV_component[0];
 	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ns_pgd=1000*band_pass_data->final_PGD_component[0];
-
 	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ns_psa03=result[0];
 	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ns_psa10=result[1];
 	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ns_psa30=result[2];

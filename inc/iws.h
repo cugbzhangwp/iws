@@ -492,7 +492,12 @@ typedef struct IWS_SERVER{//服务器信息
 	int version;
 	IWS_PAK_BUF iws_pak_buf;
 	IWS_RQ_TIME iws_rq_time;
-	unsigned char unuse[2048-100-118-88-sizeof(IWS_RQ_TIME)-sizeof(IWS_PAK_BUF)-sizeof(IWS_STEIM2)-sizeof(IWS_PARA)];
+	int sig_is_rq_data_ready;
+	int trig_starttime;
+	int trig_endtime;
+	int is_trig_data_ready;
+	int is_trig_init;
+	unsigned char unuse[2048-120-118-88-sizeof(IWS_RQ_TIME)-sizeof(IWS_PAK_BUF)-sizeof(IWS_STEIM2)-sizeof(IWS_PARA)];
 }__attribute__ ((packed,aligned(1)))IWS_SERVER;
 
 

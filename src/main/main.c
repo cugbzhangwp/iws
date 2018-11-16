@@ -93,6 +93,7 @@ extern int init_status_out_buf(APP_S * app);
 extern int make_data_main(APP_S * app);
 extern int sd_steid2_main(APP_S * app);
 extern int async_alg_main(APP_S *app);//异步算法处理过程
+extern int async_alg_main_v20(APP_S *app);
 extern void test_main();
 extern int button_push();
 
@@ -1029,7 +1030,7 @@ typedef struct THREAD_COTR{//命令行参数
 
 
 	strcpy(app_thread[22].name,"async_alg_main data server");
-	app_thread[22].thread_func=async_alg_main;
+	app_thread[22].thread_func=async_alg_main_v20;
 	app_thread[22].para=&app;
 	app_thread[22].run_status=0;
 	app_thread[22].conf_status=1;

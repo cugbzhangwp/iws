@@ -1435,15 +1435,19 @@ int get_time_data_file(void * index)
             fclose(rq_fp);
         }
         iws_rq_time->file_index++;
-        if(app->iws_file_list[iws_rq_time->file_index].tv_sec<iws_rq_time->timeend){
+        if(app->iws_file_list[iws_rq_time->file_index].tv_sec<iws_rq_time->timeend\
+            &&(app->iws_file_list[iws_rq_time->file_index].isused==1)\
+            &&(app->iws_file_list[iws_rq_time->file_index].tv_sec!=0)){
             check_file_ret=1;
         }
         else{
             check_file_ret=0;
         }
-        printf(RED"app->iws_file_list[iws_rq_time->file_index].tv_sec=%d\n,\
+        printf(GREEN"app->iws_file_list[iws_rq_time->file_index].name=%s\n,\
+            app->iws_file_list[iws_rq_time->file_index].tv_sec=%d\n,\
             iws_rq_time->timeend=%d\n,\
             check_file_ret=%d\n"NONE,\
+            app->iws_file_list[iws_rq_time->file_index].name,\
             app->iws_file_list[iws_rq_time->file_index].tv_sec,\
             iws_rq_time->timeend,\
             check_file_ret);
@@ -1511,8 +1515,8 @@ int file_Traversal(APP_S * app,int index)
             //printf(BLUE"file:%s,function：%s,line:%d\n"NONE,__FILE__,__FUNCTION__,__LINE__);
 
             d_time=app->iws_file_list[ifor].tv_sec-app->iws_rq_time[index].timestart;
-            //printf(BLUE"ifor=%d,file:%s,function：%s,line:%d\n"NONE,ifor,__FILE__,__FUNCTION__,__LINE__);
-            //printf(GREEN"now check=%s,d_time=%d\n"NONE,\
+            printf(BLUE"ifor=%d,file:%s,function：%s,line:%d\n"NONE,ifor,__FILE__,__FUNCTION__,__LINE__);
+            printf(RED"now check=%s,d_time=%d\n"NONE,\
                 app->iws_file_list[ifor].name,\
                 d_time);
             if(d_time<0){
@@ -1669,12 +1673,15 @@ update_point(int mode,int server_index)//改变模式时重新配置发送指针
                 
                 //app.iws_server[server_index].sig_trig_wave=0;
                 app.is_trig_start=0;
+                
                 app.iws_server[server_index].is_trig_start=0;
+                app.iws_server[server_index].is_trig_init=0;
                 //app.iws_server[server_index].sig_trig_wave=0;
                 app.iws_server[server_index].steim2_buf=app.buffer.steim2_out_buf[STEIM2_NOW];//回复连续波形模式，更新波形组包指针
             break;
             case TRIG_WAVE:
                 app.is_trig_start=0;
+                app.iws_server[server_index].is_trig_init=0;
                 //app.is_trig_start=0;//TODO目前这个处理，可能造成切换瞬间错过触发
                 //app.is_trig_start=0;
                 //app.iws_server[server_index].sig_trig_wave=0;
@@ -2024,9 +2031,10 @@ int debug_print_wavedata_time(IWS_UP_WAVEDATA * iws_up_wavedata)
 
 int steim2_mk_ext_wave_pak(IWS_UP_WAVEDATA_EXT * iws_up_wavedata_ext,IWS_STEIM2_OUT * steim2_buf,int pak_num)
 {
+
+    steim2_mk_wave_pak(&(iws_up_wavedata_ext->wcts[0]),steim2_buf,pak_num);
     iws_up_wavedata_ext->iws_ext_head.utc_time[0]=steim2_buf->utc_time[0];
     iws_up_wavedata_ext->iws_ext_head.utc_time[1]=steim2_buf->utc_time[1];
-    steim2_mk_wave_pak(&(iws_up_wavedata_ext->wcts[0]),steim2_buf,pak_num);
     //printf(BLUE"iws_up_wavedata_ext->wcts[0]=%c\n"NONE,iws_up_wavedata_ext->wcts[0]);
     return 0;
 }
@@ -2036,6 +2044,8 @@ int copy_steim2_data_2_send_buf(IWS_UP_WAVEDATA * iws_up_wavedata,IWS_UP_WAVEDAT
 {
     memcpy(&iws_up_wavedata->wcts[0],&iws_up_wavedata_ext->wcts[0],sizeof(IWS_UP_WAVEDATA));
     iws_up_wavedata->wcts[1]='C';
+    //printf(BLUE"iws_up_wavedata_ext->ch_idx[2]=%c\n"NONE,iws_up_wavedata_ext->ch_idx[2]);
+
     //printf(RED"iws_up_wavedata->>wcts[0]=%c\n"NONE,iws_up_wavedata->wcts[0]);
     return 0;
 }
@@ -2408,9 +2418,70 @@ int mk_wave_data_check(IWS_UP_WAVEDATA * iws_up_wavedata,int server_index)
 }
 
 
+int init_trig(APP_S * app,int connect_index)
+{
+
+    return 0;
+}
+
+int check_trig_data(APP_S * app,int connect_index)
+{
+    int ifor;
+    int d_t;
+    if(app->iws_server[connect_index].is_trig_init==0){
+        for(ifor=app->app_sig.sig_wave_data_write_buf_total;ifor>0;ifor--)
+        {
+            d_t=app->iws_wave_pak_ext[ifor].iws_ext_head.utc_time[0]-\
+                app->iws_server[connect_index].trig_starttime;
+            if(d_t==-1){
+
+                app->iws_server[connect_index].iws_pak_buf.trig_wave_buf_index.now=ifor;
+                app->iws_server[connect_index].is_trig_init=1;
+                //printf(RED"app->iws_server[connect_index].trig_starttime=%d\n\
+                    ifor=%d\n\
+                    "NONE,\
+                    app->iws_server[connect_index].trig_starttime,\
+                    ifor);
+                //printf(BLUE"app->app_sig.sig_wave_data_write_buf_total=%d\n,\
+                    app->iws_server[connect_index].iws_pak_buf.trig_wave_buf_index=%d\n,\
+                    totol.iws_ext_head.utc_time[0]=%d\n,\
+                    tirg.iws_ext_head.utc_time[0]=%d\n"NONE,\
+                    app->app_sig.sig_wave_data_write_buf_total,\
+                    app->iws_server[connect_index].iws_pak_buf.trig_wave_buf_index.now,\
+                    app->iws_wave_pak_ext[(app->app_sig.sig_wave_data_write_buf_total-1)%IWS_UP_WAVEDATA_EXT_NUM].iws_ext_head.utc_time[0],\
+                    app->iws_wave_pak_ext[app->iws_server[connect_index].iws_pak_buf.trig_wave_buf_index.now%IWS_UP_WAVEDATA_EXT_NUM].iws_ext_head.utc_time[0]\
+                    );
+                //exit(0);
+                break;
+            }
+        }
+        //return 0;
+    }
+    int is_data_ready=(app->app_sig.sig_wave_data_write_buf_total-\
+        app->iws_server[connect_index].iws_pak_buf.trig_wave_buf_index.now);
+    if(is_data_ready>0){
+        if(0==app->iws_wave_pak_ext[app->iws_server[connect_index].iws_pak_buf.trig_wave_buf_index.now%IWS_UP_WAVEDATA_EXT_NUM].iws_ext_head.utc_time[0]){
+            return 0;
+        }
 
 
-
+        //printf(YELLOW"app->iws_wave_pak_ext[(app->iws_server[connect_index].iws_pak_buf.trig_wave_buf_index.now%IWS_UP_WAVEDATA_EXT_NUM].ch_idx[2]=%c\n"NONE,app->iws_wave_pak_ext[(app->iws_server[connect_index].iws_pak_buf.trig_wave_buf_index.now%IWS_UP_WAVEDATA_EXT_NUM)].ch_idx[2]);
+        //printf(GREEN"app->app_sig.sig_wave_data_write_buf_total=%d\n\
+            app->iws_server[connect_index].iws_pak_buf.trig_wave_buf_index=%d\n\
+            totol.iws_ext_head.utc_time[0]=%d\n\
+            tirg.iws_ext_head.utc_time[0]=%d\n"NONE,\
+            app->app_sig.sig_wave_data_write_buf_total,\
+            app->iws_server[connect_index].iws_pak_buf.trig_wave_buf_index.now,\
+            app->iws_wave_pak_ext[(app->app_sig.sig_wave_data_write_buf_total-1)%IWS_UP_WAVEDATA_EXT_NUM].iws_ext_head.utc_time[0],\
+            app->iws_wave_pak_ext[app->iws_server[connect_index].iws_pak_buf.trig_wave_buf_index.now%IWS_UP_WAVEDATA_EXT_NUM].iws_ext_head.utc_time[0]\
+            );
+        return 1;
+    }
+    //int is_can_send_mode2=\
+        (app->is_trig_start==1)&&\
+        (app->iws_server[connect_index].mode==2);
+    return 0;
+}
 
 
 
@@ -2512,6 +2583,24 @@ int iws_write_process_v20(int fid,int connect_index,APP_S * app)//写处理框�
                     sizeof(IWS_UP_WAVEDATA));
         sig_is_rq_data_ready=0;
     }
+    if((app->iws_server[connect_index].mode==2)&&(app->is_trig_start==1)){
+        while((check_trig_data(app,connect_index)))
+        {
+            int buf_index=app->iws_server[connect_index].iws_pak_buf.trig_wave_buf_index.now%IWS_UP_WAVEDATA_EXT_NUM;
+            copy_steim2_data_2_send_buf(&app->iws_cstp[connect_index].iws_up_wavedata,&app->iws_wave_pak_ext[buf_index]);
+            app->iws_server[connect_index].iws_pak_buf.trig_wave_buf_index.now++;
+            mk_wave_data_check(&app->iws_cstp[connect_index].iws_up_wavedata,connect_index);
+             printf(RED"buf_index=%d\napp->iws_cstp[connect_index].iws_up_wavedata=%c\n"NONE,buf_index,app->iws_cstp[connect_index].iws_up_wavedata.ch_idx[2]);
+
+            realsend+=writenbytes(&app->iws_cstp[connect_index].iws_up_wavedata,fid,sizeof(IWS_UP_WAVEDATA));
+            //printf("");
+        }
+    }
+
+
+
+/*
+
     if((app->iws_server[connect_index].mode==2)&&(app->iws_server[connect_index].sig_trig_wave>0))//触发传波形
     {
         //printf(GREEN"app->iws_server[connect_index].sig_trig_wave=%d\n"NONE,app->iws_server[connect_index].sig_trig_wave);
@@ -2530,6 +2619,7 @@ int iws_write_process_v20(int fid,int connect_index,APP_S * app)//写处理框�
 
         //app->iws_server[connect_index].sig_trig_wave--;
     }
+*/
     if((app->iws_server[connect_index].mode>1)&&(app->iws_server[connect_index].sig_trig_ti>0))//触发传波形
     {
         app->iws_server[connect_index].sig_trig_ti--;
