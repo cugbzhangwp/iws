@@ -153,8 +153,6 @@ int atcmd_saveserver(char * buf,int length)
 {
 	//AT+SAVESVR\r\n
 	//41 54 2b 53 45 54 41 44 3d 01 01 20 B0 E0 00 00 00 00 00 00 04 01 23 45 67 01 01 01 01 0d 0a
-	char filepath[]="/home/pi/Geo_Pi";
-	char filename[]="iwspara.para";
 	if(save_bufinfile(&app.iws_server,6*sizeof(IWS_SERVER),IWS_SVR_PARAFILE,IWSPARAPATH,"w+")==0){
 		atcmd_com_OK_rt();
 	}
@@ -327,7 +325,7 @@ int atcmd_getpca(char * buf,int length)
 int do_rm()
 {
     pid_t status;
-    status = system("rm /home/pi/userdata/*");
+    status = system("rm /home/pi/userdata/data/steim2/*");
 
     if (-1 == status)
     {
@@ -425,6 +423,8 @@ int iws_para_check()
 
 	return 0;
 }
+
+
 int atcmd_iws_setpara(char * buf,int length)
 {
 	print_iwspara();
@@ -438,8 +438,12 @@ int atcmd_iws_setpara(char * buf,int length)
 		&app.iws_para.threshold_a[0],&app.iws_para.threshold_a[1],&app.iws_para.threshold_a[2],\
 		&app.iws_para.trig_flag);
 	iws_para_check();
-	atcmd_com_OK_rt();
-	printf("\n");
+	if(save_bufinfile(&app.iws_para,sizeof(IWS_PARA),IWS_TRIG_PARAFILE,IWS_TRIG_PARAPATH,"w+")==0){
+		atcmd_com_OK_rt();
+	}
+	else{
+		atcmd_com_ER_rt();
+	}
 	return 0;
 }
 
@@ -450,7 +454,7 @@ int atcmd_iws_setpara(char * buf,int length)
 int atcmd_iws_getpara(char * buf,int length)
 {
 	//41 54 2b 53 45 54 41 44 3d 01 01 20 B0 E0 00 00 00 00 00 00 04 01 23 45 67 01 01 01 01 0d 0a
-	memcpy(sendbuf,&app.iws_para,sizeof(IWS_PARA));
+	memcpy(sendbuf,&app.iws_para,sizeof(IWS_PARA)-64);
 	sendlen=sizeof(IWS_PARA);
 	sendbuf[sendlen++]=0x0d;
 	sendbuf[sendlen++]=0x0a;

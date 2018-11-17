@@ -45,6 +45,7 @@ extern int add_file_list(char * fileurl);
 extern int del_file_list(char * fileurl);
 extern int printf_file_list();
 extern int init_psa_pga();
+
 int is_sd_mounted=0;
 
 
@@ -1393,7 +1394,7 @@ int get_time_data_file(void * index)
         }
         else{
             while(feof(rq_fp)==0){
-                if(sig_is_rq_data_ready==0){
+                if(app->iws_server[iws_rq_time->server_index].sig_is_rq_data_ready==0){
                     readlen=myread((unsigned char *)iws_up_wavedata_ext,sizeof(IWS_UP_WAVEDATA_EXT),rq_fp);
                     readcount+=readlen;
                     //printf(BLUE"readcount=%d\n"NONE,readcount);
@@ -1401,7 +1402,7 @@ int get_time_data_file(void * index)
                     if(readlen==sizeof(IWS_UP_WAVEDATA_EXT)){
                         check_ret=check_pak_wave_ext(iws_up_wavedata_ext,iws_rq_time);
                         if(check_ret==0){
-                            sig_is_rq_data_ready=1;
+                            app->iws_server[iws_rq_time->server_index].sig_is_rq_data_ready=1;
                             //realwrite=writenbytes((unsigned char *)&iws_up_wavedata_ext->wcts[0],\
                                 app->iws_server[iws_rq_time->server_index].fid,\
                                 sizeof(IWS_UP_WAVEDATA)); 
@@ -1673,7 +1674,7 @@ update_point(int mode,int server_index)//改变模式时重新配置发送指针
                 
                 //app.iws_server[server_index].sig_trig_wave=0;
                 app.is_trig_start=0;
-                
+                app.iws_server[server_index].is_first_send=0;
                 app.iws_server[server_index].is_trig_start=0;
                 app.iws_server[server_index].is_trig_init=0;
                 //app.iws_server[server_index].sig_trig_wave=0;
@@ -1681,6 +1682,7 @@ update_point(int mode,int server_index)//改变模式时重新配置发送指针
             break;
             case TRIG_WAVE:
                 app.is_trig_start=0;
+                app.iws_server[server_index].is_trig_start=0;
                 app.iws_server[server_index].is_trig_init=0;
                 //app.is_trig_start=0;//TODO目前这个处理，可能造成切换瞬间错过触发
                 //app.is_trig_start=0;
@@ -1710,13 +1712,18 @@ update_point(int mode,int server_index)//改变模式时重新配置发送指针
                 
                 //app.iws_server[server_index].sig_trig_wave=0;
                 app.is_trig_start=0;
+                init_psa_pga();
+
                 app.iws_server[server_index].is_trig_start=0;
+                app.iws_server[server_index].is_trig_init=0;
                 //app.iws_server[server_index].sig_trig_wave=0;
                 app.iws_server[server_index].iws_pak_buf.wave_buf_index.now=\
                 app.app_sig.sig_wave_data_write_buf_total;
                 break;
             case TRIG_WAVE:
                 app.is_trig_start=0;
+                init_psa_pga();
+
                 //app.is_trig_start=0;//TODO目前这个处理，可能造成切换瞬间错过触发
                 //app.is_trig_start=0;
                 //app.iws_server[server_index].sig_trig_wave=0;
@@ -1725,6 +1732,8 @@ update_point(int mode,int server_index)//改变模式时重新配置发送指针
                 app.iws_server[server_index].status_send_buf=app.buffer.status_out_buf[STATUS_NOW];//状态信息包指针更新
             break;
             case TRIG_NOWAVE:
+                init_psa_pga();
+
                 app.is_trig_start=0;//TODO目前这个处理，可能造成切换瞬间错过触发
                 app.iws_server[server_index].is_trig_start=0;
                 //app.is_trig_start=0;
@@ -2215,7 +2224,7 @@ int steim2_mk_trig_pak(IWS_UP_WAVEDATA * iws_up_wavedata,int connect_index, int 
 {
 //app->iws_server[connect_index].sig_trig_wave_data_send_buf
 
-    memcpy(iws_up_wavedata,&(app.iws_wave_pak_ext[app.iws_server[connect_index].sig_trig_wave_data_send_buf%1000].wcts[0]),256);
+    memcpy(iws_up_wavedata,&(app.iws_wave_pak_ext[app.iws_server[connect_index].sig_trig_wave_data_send_buf%IWS_UP_WAVEDATA_EXT_NUM].wcts[0]),256);
     iws_up_wavedata->package_number=htonl(pak_num);
     app.iws_server[connect_index].sig_trig_wave_data_send_buf++;
 
@@ -2424,25 +2433,45 @@ int init_trig(APP_S * app,int connect_index)
     return 0;
 }
 
-int check_trig_data(APP_S * app,int connect_index)
+
+
+int check_event_continue(APP_S * app,int connect_index)
+{
+    int is_data_intime=app->iws_server[connect_index].trig_endtime-app->iws_wave_pak_ext[app->iws_server[connect_index].iws_pak_buf.trig_wave_buf_index.now%IWS_UP_WAVEDATA_EXT_NUM].iws_ext_head.utc_time[0];
+    printf(LIGHT_RED"is_data_intime=%d\n"NONE,is_data_intime);
+    if(is_data_intime>=0){
+        return 1;
+    }
+    else{
+        return 0;
+    }
+}
+
+
+
+int end_event(APP_S * app,int connect_index)
+{
+    app->iws_server[connect_index].is_trig_init=0;
+}
+int check_is_trig_buf_ready(APP_S * app,int connect_index)
 {
     int ifor;
     int d_t;
     if(app->iws_server[connect_index].is_trig_init==0){
         for(ifor=app->app_sig.sig_wave_data_write_buf_total;ifor>0;ifor--)
         {
-            d_t=app->iws_wave_pak_ext[ifor].iws_ext_head.utc_time[0]-\
+            d_t=app->iws_wave_pak_ext[ifor%IWS_UP_WAVEDATA_EXT_NUM].iws_ext_head.utc_time[0]-\
                 app->iws_server[connect_index].trig_starttime;
             if(d_t==-1){
 
                 app->iws_server[connect_index].iws_pak_buf.trig_wave_buf_index.now=ifor;
                 app->iws_server[connect_index].is_trig_init=1;
-                //printf(RED"app->iws_server[connect_index].trig_starttime=%d\n\
+                printf(RED"app->iws_server[connect_index].trig_starttime=%d\n\
                     ifor=%d\n\
                     "NONE,\
                     app->iws_server[connect_index].trig_starttime,\
                     ifor);
-                //printf(BLUE"app->app_sig.sig_wave_data_write_buf_total=%d\n,\
+                printf(BLUE"app->app_sig.sig_wave_data_write_buf_total=%d\n,\
                     app->iws_server[connect_index].iws_pak_buf.trig_wave_buf_index=%d\n,\
                     totol.iws_ext_head.utc_time[0]=%d\n,\
                     tirg.iws_ext_head.utc_time[0]=%d\n"NONE,\
@@ -2457,16 +2486,16 @@ int check_trig_data(APP_S * app,int connect_index)
         }
         //return 0;
     }
-    int is_data_ready=(app->app_sig.sig_wave_data_write_buf_total-\
+    int is_buf_ready=(app->app_sig.sig_wave_data_write_buf_total-\
         app->iws_server[connect_index].iws_pak_buf.trig_wave_buf_index.now);
-    if(is_data_ready>0){
+    if(is_buf_ready>1){
         if(0==app->iws_wave_pak_ext[app->iws_server[connect_index].iws_pak_buf.trig_wave_buf_index.now%IWS_UP_WAVEDATA_EXT_NUM].iws_ext_head.utc_time[0]){
             return 0;
         }
 
 
-        //printf(YELLOW"app->iws_wave_pak_ext[(app->iws_server[connect_index].iws_pak_buf.trig_wave_buf_index.now%IWS_UP_WAVEDATA_EXT_NUM].ch_idx[2]=%c\n"NONE,app->iws_wave_pak_ext[(app->iws_server[connect_index].iws_pak_buf.trig_wave_buf_index.now%IWS_UP_WAVEDATA_EXT_NUM)].ch_idx[2]);
-        //printf(GREEN"app->app_sig.sig_wave_data_write_buf_total=%d\n\
+        printf(YELLOW"app->iws_wave_pak_ext[(app->iws_server[connect_index].iws_pak_buf.trig_wave_buf_index.now%IWS_UP_WAVEDATA_EXT_NUM].ch_idx[2]=%c\n"NONE,app->iws_wave_pak_ext[(app->iws_server[connect_index].iws_pak_buf.trig_wave_buf_index.now%IWS_UP_WAVEDATA_EXT_NUM)].ch_idx[2]);
+        printf(GREEN"app->app_sig.sig_wave_data_write_buf_total=%d\n\
             app->iws_server[connect_index].iws_pak_buf.trig_wave_buf_index=%d\n\
             totol.iws_ext_head.utc_time[0]=%d\n\
             tirg.iws_ext_head.utc_time[0]=%d\n"NONE,\
@@ -2483,7 +2512,26 @@ int check_trig_data(APP_S * app,int connect_index)
     return 0;
 }
 
-
+int start_record_event()
+{
+    char url[256];
+    if(app.evt_record.fp!=NULL)
+    {
+        app.evt_record.fp=fclose(app.evt_record.fp);
+        app.evt_record.is_file_open=0;
+    }
+    snprintf(url,256,"%s/evt_%d.%d.evt",app.evt_record.path,app.evt_record.utc_time[0],app.evt_record.utc_time[1]);
+    app.evt_record.fp=fopen(url,"w+");
+    printf("url=%s,app.evt_record.fp=%d\n",url,app.evt_record.fp);
+    //exit(0);
+    if(app.evt_record.fp!=NULL){
+            printf("url=%s,app.evt_record.fp=%d\n",url,app.evt_record.fp);
+        app.evt_record.is_file_open=1;
+        return 0;
+    }
+        printf("url=%s,app.evt_record.fp=%d\n",url,app.evt_record.fp);
+    return 0;
+}
 
 
 
@@ -2577,30 +2625,37 @@ int iws_write_process_v20(int fid,int connect_index,APP_S * app)//写处理框�
             app->iws_server[connect_index].iws_pak_buf.wave_buf_index.now);
     }
     //app.is_trig_start=1
-    if(sig_is_rq_data_ready==1){
+    if(app->iws_server[connect_index].sig_is_rq_data_ready==1){
         writenbytes((unsigned char *)&iws_up_wavedata_ext_globe->wcts[0],\
                     fid,\
                     sizeof(IWS_UP_WAVEDATA));
-        sig_is_rq_data_ready=0;
+        app->iws_server[connect_index].sig_is_rq_data_ready=0;
     }
-    if((app->iws_server[connect_index].mode==2)&&(app->is_trig_start==1)){
-        while((check_trig_data(app,connect_index)))
+    
+    if((app->iws_server[connect_index].mode==2)&&(app->iws_server[connect_index].is_trig_start==1)){
+        if((check_is_trig_buf_ready(app,connect_index)))
         {
-            int buf_index=app->iws_server[connect_index].iws_pak_buf.trig_wave_buf_index.now%IWS_UP_WAVEDATA_EXT_NUM;
-            copy_steim2_data_2_send_buf(&app->iws_cstp[connect_index].iws_up_wavedata,&app->iws_wave_pak_ext[buf_index]);
-            app->iws_server[connect_index].iws_pak_buf.trig_wave_buf_index.now++;
-            mk_wave_data_check(&app->iws_cstp[connect_index].iws_up_wavedata,connect_index);
-             printf(RED"buf_index=%d\napp->iws_cstp[connect_index].iws_up_wavedata=%c\n"NONE,buf_index,app->iws_cstp[connect_index].iws_up_wavedata.ch_idx[2]);
-
-            realsend+=writenbytes(&app->iws_cstp[connect_index].iws_up_wavedata,fid,sizeof(IWS_UP_WAVEDATA));
-            //printf("");
+            if(check_event_continue(app,connect_index))
+            {
+                int buf_index=app->iws_server[connect_index].iws_pak_buf.trig_wave_buf_index.now%IWS_UP_WAVEDATA_EXT_NUM;
+                copy_steim2_data_2_send_buf(&app->iws_cstp[connect_index].iws_up_wavedata,&app->iws_wave_pak_ext[buf_index]);
+                mk_wave_data_check(&app->iws_cstp[connect_index].iws_up_wavedata,connect_index);
+                //printf(RED"buf_index=%d\napp->iws_cstp[connect_index].iws_up_wavedata=%c\n"NONE,buf_index,app->iws_cstp[connect_index].iws_up_wavedata.ch_idx[2]);
+                realsend+=writenbytes(&app->iws_cstp[connect_index].iws_up_wavedata,fid,sizeof(IWS_UP_WAVEDATA));
+                app->iws_server[connect_index].iws_pak_buf.trig_wave_buf_index.now++;//printf("");
+            }
+            else{
+                app->iws_server[connect_index].is_trig_start=0;
+                end_event(app,connect_index);
+            }
         }
+
     }
+
 
 
 
 /*
-
     if((app->iws_server[connect_index].mode==2)&&(app->iws_server[connect_index].sig_trig_wave>0))//触发传波形
     {
         //printf(GREEN"app->iws_server[connect_index].sig_trig_wave=%d\n"NONE,app->iws_server[connect_index].sig_trig_wave);
@@ -2959,8 +3014,8 @@ int iws_client1(APP_S * app)
     servaddr.sin_port = htons(app->iws_server[server_index].port);
 
     /*连接服务端*/
-    printf("try to connect\n");
-    printf("ip=%s,port=%d\n",app->iws_server[server_index].ipv4_addr,app->iws_server[server_index].port);
+    //printf("try to connect\n");
+   // printf("ip=%s,port=%d\n",app->iws_server[server_index].ipv4_addr,app->iws_server[server_index].port);
     //exit(0);
     //wait_for_device_ok(app);//等待设备状态就绪，从而开始设备注册
     int reg_status=-1;
@@ -2990,9 +3045,9 @@ int iws_client1(APP_S * app)
         inet_pton(AF_INET, app->iws_server[server_index].ipv4_addr, &servaddr.sin_addr);
         servaddr.sin_port = htons(app->iws_server[server_index].port);
         //printf(PURPLE"inside function %s line:%d\n"NONE,__FUNCTION__,__LINE__);
-        printf(RED"try to conenct server %d,sockfd=%d\n"NONE,server_index,sockfd);
-        printf(RED"server ip :%s\n"NONE,app->iws_server[server_index].ipv4_addr);
-        printf(RED"server port :%d\n"NONE,app->iws_server[server_index].port);
+        // printf(RED"try to conenct server %d,sockfd=%d\n"NONE,server_index,sockfd);
+        // printf(RED"server ip :%s\n"NONE,app->iws_server[server_index].ipv4_addr);
+        // printf(RED"server port :%d\n"NONE,app->iws_server[server_index].port);
         init_cstp(&app->iws_cstp[server_index],server_index);
         init_server(&app->iws_server[server_index]);
         app->iws_server[server_index].is_first_send=0;
@@ -3004,7 +3059,7 @@ int iws_client1(APP_S * app)
     int keepInterval = 5; // 探测时发包的时间间隔为5 秒  
     int keepCount = 3; // 探测尝试的次数.如果第1次探测包就收到响应了,则后2次的不再发. 
      ret=setsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, (void *)&keepAlive, sizeof(keepAlive));  
-    printf("server_index=%d,SO_KEEPALIVE ret=%d\n",server_index,ret);
+    //printf("server_index=%d,SO_KEEPALIVE ret=%d\n",server_index,ret);
     if(ret!=0)
     {
         printf("client_sockfd=%d\n",sockfd);
@@ -3012,7 +3067,7 @@ int iws_client1(APP_S * app)
         //exit(0);
     }
     ret=setsockopt(sockfd, SOL_TCP, TCP_KEEPIDLE, (void *)&keepIdle, sizeof(keepIdle));  
-    printf("server_index=%d,TCP_KEEPIDLE ret=%d\n",server_index,ret);
+    //printf("server_index=%d,TCP_KEEPIDLE ret=%d\n",server_index,ret);
     if(ret!=0)
     {
         printf("client_sockfd=%d\n",sockfd);
@@ -3020,7 +3075,7 @@ int iws_client1(APP_S * app)
         //exit(0);
     }
     ret=setsockopt(sockfd, SOL_TCP, TCP_KEEPINTVL, (void *)&keepInterval, sizeof(keepInterval));  
-    printf("server_index=%d,TCP_KEEPINTVL ret=%d\n",server_index,ret);
+    //printf("server_index=%d,TCP_KEEPINTVL ret=%d\n",server_index,ret);
     if(ret!=0)
     {
         printf("client_sockfd=%d\n",sockfd);
@@ -3028,7 +3083,7 @@ int iws_client1(APP_S * app)
         //exit(0);
     }
     ret=setsockopt(sockfd, SOL_TCP, TCP_KEEPCNT, (void *)&keepCount, sizeof(keepCount));
-    printf("server_index=%d,TCP_KEEPCNT ret=%d\n",server_index,ret);
+   // printf("server_index=%d,TCP_KEEPCNT ret=%d\n",server_index,ret);
     if(ret!=0)
     {
         printf("client_sockfd=%d\n",sockfd);

@@ -2048,15 +2048,16 @@ long last_sec,last_nsec;
 int init_psa_pga()
 {
 
-
-	memset(&app.iws_trig_pgaget,0,sizeof(IWS_TRIG_PGAGET));
-	app.iws_trig_pgaget.multiple_PGA=3.73;
-	app.iws_trig_pgaget.increment_PGA=-1.23;
-	app.iws_trig_pgaget.multiple_PGV=3.61;
-	app.iws_trig_pgaget.increment_PGV=2.72;
-	app.iws_trig_pgaget.trig=1;
-	app.iws_trig_pgaget.countt=1;
-	//app.iws_trig_pgaget.period[2]=3;
+	init_pga(&iws_trig_pgaget);
+	init_psa(&iws_trig_psaget);
+	// memset(&app.iws_trig_pgaget,0,sizeof(IWS_TRIG_PGAGET));
+	// app.iws_trig_pgaget.multiple_PGA=3.73;
+	// app.iws_trig_pgaget.increment_PGA=-1.23;
+	// app.iws_trig_pgaget.multiple_PGV=3.61;
+	// app.iws_trig_pgaget.increment_PGV=2.72;
+	// app.iws_trig_pgaget.trig=1;
+	// app.iws_trig_pgaget.countt=1;
+	// //app.iws_trig_pgaget.period[2]=3;
 	return 0;
 }
 
@@ -2627,7 +2628,7 @@ int start_evt()
 		app.evt_record.is_file_open=1;
 		return 0;
 	}
-		printf("url=%s,app.evt_record.fp=%d\n",url,app.evt_record.fp);
+	printf("url=%s,app.evt_record.fp=%d\n",url,app.evt_record.fp);
 	return 0;
 }
 
@@ -2840,19 +2841,31 @@ int async_alg_main_v20(APP_S *app)//Òì²½Ëã·¨´¦Àí¹ý³Ì
 						//resample2_num++;															//FENG BIAO_11_12 µÈ¹»10ÃëµÄÖØ²ÉÑùÊý¾Ý
 					}
 					else if(alg_pre_coutn_resample==10*app->app_para.fs){
-						calculate_mean(fir_list_async,mean);								//FENG BIAO_11_12 ¼ÆËã10Ãë ¾ùÖµ dataV dataD
+						calculate_mean(fir_list_async,mean);	
+									//init_psa(&iws_trig_psaget);
+									//init_pga(&iws_trig_pgaget);							//FENG BIAO_11_12 ¼ÆËã10Ãë ¾ùÖµ dataV dataD
 					}
 					else{
 						int pga_ret;                                                   //FENG BIAO_11_12
 						band_passstruct11_11(fir_list_async,app->iws_para.filter_chose,x_y_z,mean);       //FENG BIAO_11_12 ¼ÆËãÐÂµãµÄ dataV dataD ÒÔ¼° band_passÊý¾Ý
-						pga_ret=PGA_V_G2(fir_list_async,\
+
+						if(alg_pre_coutn_resample%((int)(app->app_para.fs))==0)
+						{
+						// printf("iws_trig_pgaget.trig= %d GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG\n",iws_trig_pgaget.trig);
+						// printf("slt_llt= %f      fffffffffffffffffffffffffffffffffffffffffffffffffff\n",p_result);
+						}
+						pga_ret=PGA_V_G_11_11(fir_list_async,\
 							&(iws_trig_pgaget.band_pass_data),\
 							&(iws_trig_pgaget.countt),\
 							1,&(iws_trig_pgaget.trig),\
 							iws_trig_pgaget.PGV_type,\
 							app->iws_para.filter_chose);													  //FENG BIAO_11_12 
 	                    if(pga_ret==3){
-							//È¡PGA£¬PGV,PGDµÄ×´Ì¬ÐÅÏ¢Öµ                                                       //FENG BIAO_11_12
+							// printf("pga_ret =3\n");//È¡PGA£¬PGV,PGDµÄ×´Ì¬ÐÅÏ¢Öµ                                                       //FENG BIAO_11_12
+							// printf("app->iws_para.trig_flag=   %f\n",app->iws_para.trig_flag);
+							// printf("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS\n",app->iws_para.trig_flag);
+							// printf("fir_list_async.band_pass_dataD[4]=%f   \n",fir_list_async->band_pass_dataD[4]);
+							// printf("fir_list_async.band_pass_dataV[4]=%f   \n",fir_list_async->band_pass_dataV[4]);
 						}
 						app->app_count.resample_times++;
 						//printf("resample_times=%d,fir_list_async.count=%d\n",app->app_count.resample_times,fir_list_async->count);
@@ -2900,6 +2913,8 @@ int async_alg_main_v20(APP_S *app)//Òì²½Ëã·¨´¦Àí¹ý³Ì
 							app->app_count.si_count=0;
 							
 						}
+
+
 						iws_do_steim_pre(fir_list_async,&app->steim2_para);//ÊÕ¸î²¨ÐÎÊý¾Ý
 						//->get x_y_z;
 						app->iws_para.trg_ch=get_trig_ch_select(app->iws_para.i_l);//use which ch to trig;
@@ -2933,6 +2948,7 @@ int async_alg_main_v20(APP_S *app)//Òì²½Ëã·¨´¦Àí¹ý³Ì
 								else{
 									app->is_trig=0;
 								}
+
 							}
 							else if(app->iws_para.trig_flag==1){
 								if(abs(fir_list_async->band_pass_data[4])>app->iws_para.threshold_a[0]){
@@ -2967,6 +2983,9 @@ int async_alg_main_v20(APP_S *app)//Òì²½Ëã·¨´¦Àí¹ý³Ì
 									app->is_trig=0;
 								}
 							}
+
+
+
 							// app->is_trig ÊÇ·ñ´¥·¢
 
 							if(app->is_trig==1){//Èç¹û´¥·¢ÁËÔò¸üÐÂ´¥·¢×îºóÊ±¼ä
@@ -2979,7 +2998,7 @@ int async_alg_main_v20(APP_S *app)//Òì²½Ëã·¨´¦Àí¹ý³Ì
 									get_imt(fir_list_async,iws_trig_psaget.utc_time_imt,iws_trig_psaget.trig_start);
 									app->evt_record.utc_time[0]=iws_trig_psaget.trig_start[0];
 									app->evt_record.utc_time[1]=iws_trig_psaget.trig_start[1];
-									start_evt();
+									//start_evt();
 									int det_t=0;//µ÷Õûµ½NÍ¨µÀ
 									app->app_sig.sig_wave_data_send_buf=(app->app_sig.sig_wave_data_write_buf+(int)(1000-3*36*4*(app->app_para.fs/200.0)))%1000;
 									app->app_count.trig_start=app->app_count.resample_times;
@@ -2992,7 +3011,7 @@ int async_alg_main_v20(APP_S *app)//Òì²½Ëã·¨´¦Àí¹ý³Ì
 											//app->buffer.steim2_out_buf[STEIM2_NOW];
 											app->iws_server[ifor].is_trig_init=0;
 											app->iws_server[ifor].trig_starttime=app->evt_record.utc_time[0]-30;
-											app->iws_server[ifor].trig_endtime=app->evt_record.utc_time[0]+30;
+											app->iws_server[ifor].trig_endtime=app->evt_record.utc_time[0]+60+((app->app_count.last_trig-app->app_count.trig_start)%app->app_para.fs)+1;
 											//get_trig_start_buf_index(app);
 											app->iws_server[ifor].sig_trig_wave=3*36*4*(app->app_para.fs/200.0);
 											//printf("app->iws_server[ifor].sig_trig_wave=%d\n,\
@@ -3016,31 +3035,50 @@ int async_alg_main_v20(APP_S *app)//Òì²½Ëã·¨´¦Àí¹ý³Ì
 									int i;
 									FIR_LIST *now_i_fir_list;
 									now_i_fir_list=fir_list_async;
-									for(i=0;i<3*app->app_para.fs;i++)
+									//struct timespec date_time;//数据采集时间
+									// clock_gettime(CLOCK_REALTIME, &date_time);
+									// printf(YELLOW"before date_time.tv_sec=%d,date_time.tv_nsec=%d\n"NONE,date_time.tv_sec,date_time.tv_nsec);
+									for(i=0;i<3*app->app_para.fs+20;i++)
 										{
 											band_passstruct11_11(now_i_fir_list,app->iws_para.filter_chose,x_y_z,mean);         //FENG BIAO_11_12 ¼ÆËãÐÂµãµÄ dataV dataD ÒÔ¼° band_passÊý¾Ý
 											now_i_fir_list=now_i_fir_list->last;					                      //FENG BIAO_11_12 ¼ÆËãPGA PGV PGD										
 										}
+									// clock_gettime(CLOCK_REALTIME, &date_time);
+									// printf(YELLOW"after date_time.tv_sec=%d,date_time.tv_nsec=%d\n"NONE,date_time.tv_sec,date_time.tv_nsec);
+									//exit(0);
 									iws_trig_pgaget.trig=1;
-									PGA_V_G2(fir_list_async,&(iws_trig_pgaget.band_pass_data),&(iws_trig_pgaget.countt),1,&(iws_trig_pgaget.trig),iws_trig_pgaget.PGV_type,app->iws_para.filter_chose);													  //FENG BIAO_11_12 ;  
+									PGA_V_G_11_11(fir_list_async,&(iws_trig_pgaget.band_pass_data),&(iws_trig_pgaget.countt),1,&(iws_trig_pgaget.trig),iws_trig_pgaget.PGV_type,app->iws_para.filter_chose);													  //FENG BIAO_11_12 ;  
 									//¼ÆËã3ÃëµÄPGA£¬PGV£¬PGD                                     
 									  //ÕâÀïÓ¦¸Ã·¢ËÍÐÅÏ¢
+									//printf("send yujing xinxi  iws_trig_pgaget.trig=%f\n\n\n",iws_trig_pgaget.trig);
 									
 								}
 								else{
-									;
+									for(ifor=0;ifor<6;ifor++)
+									{
+
+										if((app->iws_server[ifor].status.isconnect==1)&&(app->iws_server[ifor].mode==2)){
+											app->iws_server[ifor].trig_endtime=app->iws_server[ifor].trig_starttime+60+(int)((app->app_count.last_trig-app->app_count.trig_start)/app->app_para.fs)+1;
+											printf(LIGHT_BLUE"app->app_count.resample_times=%d\napp->app_count.last_trig=%d\nd_t=%d\n"NONE,app->app_count.resample_times,app->app_count.last_trig,(int)((app->app_count.resample_times-app->app_count.last_trig)/app->app_para.fs));
+											printf(LIGHT_BLUE"app->iws_server[%d].trig_endtime=%d\n"NONE,ifor,app->iws_server[ifor].trig_endtime);
+										}
+									}
+									//printf(LIGHT_BLUE"app->iws_server[ifor].trig_endtime=%d\n"NONE,app->iws_server[ifor].trig_endtime);
+
 								}
 							}
 							if(app->is_trig_start==1){//Î¬»¤´¥·¢×´Ì¬£¬Ã¿¸ö²ÉÑùµã¸üÐÂÒ»´Î×´Ì¬
 								int aa=app->app_count.resample_times-app->app_count.last_trig;
 								int bb=app->app_count.resample_times-app->app_count.trig_start;
 								//printf(RED"aa=%d,bb=%d,app.app_count.last_trig=%d,app.app_count.trig_start=%d\n"NONE,aa,bb,app->app_count.last_trig,app->app_count.trig_start);
-								if((aa>(30*app->app_para.fs))\
-								    &&(bb>(60*app->app_para.fs))){
+						#define LAST_TRIG 30	
+						#define TRIG_LEN 30	
+								if((aa>(LAST_TRIG*app->app_para.fs))\
+								    &&(bb>(TRIG_LEN*app->app_para.fs))){
 								    app->is_trig_start=0;
-									for(ifor=0;ifor<6;ifor++){
-										app->iws_server[ifor].is_trig_init=0;
-									}
+									// for(ifor=0;ifor<6;ifor++){
+									// 	app->iws_server[ifor].is_trig_init=0;
+									// }
 									iws_trig_pgaget.trig=0;
 								}
 							}
@@ -3091,19 +3129,21 @@ int async_alg_main_v20(APP_S *app)//Òì²½Ëã·¨´¦Àí¹ý³Ì
 									// 	iws_trig_pgaget.band_pass_data.final_PGV);
 									// printf("iws_trig_pgaget.band_pass_data.final_PGV_component[0]=%f\n",\
 									// 	iws_trig_pgaget.band_pass_data.final_PGV_component[0]);
-									printf("iws_trig_pgaget.band_pass_data.final_PGD=%f\n",\
+									//printf("iws_trig_pgaget.band_pass_data.final_PGD=%f\n",\
 										iws_trig_pgaget.band_pass_data.final_PGD);
-									printf("iws_trig_pgaget.band_pass_data.final_PGD_component[0]=%f\n",\
+									//printf("iws_trig_pgaget.band_pass_data.final_PGD_component[0]=%f\n",\
 										iws_trig_pgaget.band_pass_data.final_PGD_component[0]);
-									printf("fir_list_async->band_pass_dataD[0]=%f\n",\
+									//printf("fir_list_async->band_pass_dataD[0]=%f\n",\
 										fir_list_async->band_pass_dataD[0]);
-									printf("fir_list_async->band_pass_dataD[4]=%f\n",\
+									//printf("fir_list_async->band_pass_dataD[4]=%f\n",\
 										fir_list_async->band_pass_dataD[4]);
-									printf("fir_list_async->dataD[0]=%f\n",\
+									//printf("fir_list_async->dataD[0]=%f\n",\
 										fir_list_async->dataD[0]);
-									printf("fir_list_async->dataD[4]=%f\n",\
+									//printf("fir_list_async->dataD[4]=%f\n",\
 										fir_list_async->dataD[4]);
-									
+									//printf("mean[0]=  %f   mean[1]=   %f   mean[2]=   %f    \n",mean[0],mean[1],mean[2]);
+
+									//printf("iws_trig_pgaget.trig=   %d\n",iws_trig_pgaget.trig);
 									//fir_list1_async
 									//exit(0);
 
@@ -3122,7 +3162,7 @@ int async_alg_main_v20(APP_S *app)//Òì²½Ëã·¨´¦Àí¹ý³Ì
 
 										if((app->iws_server[ifor].status.isconnect==1)&&(app->iws_server[ifor].mode>1)){
 											app->iws_server[ifor].sig_trig_ti++;
-											printf(PURPLE"server %d ready app->iws_server[ifor].mode=%d\n"NONE,ifor,app->iws_server[ifor].mode);
+											//printf(PURPLE"server %d ready app->iws_server[ifor].mode=%d\n"NONE,ifor,app->iws_server[ifor].mode);
 
 										}
 									}

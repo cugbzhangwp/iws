@@ -75,6 +75,7 @@ typedef struct IWS_PARA{////
 	int filter_chose;//滤波器选择
 	int threshold_a[3];//***
 	int trig_flag;//***
+	unsigned char reserve[64];
 	//float result;
 	//
 }__attribute__ ((packed,aligned(1)))IWS_PARA;
@@ -244,6 +245,68 @@ int
 	int ns_psa30;
 	char unuse[154];
 }__attribute__ ((packed,aligned(1)))IWS_UP_TI;
+
+
+
+
+
+
+
+
+
+
+
+
+
+typedef struct IWS_UP_YJ{//触发信息包
+	char type_lable[2];//SI
+	int package_number;
+	int imt_s;//Initial movement time
+	short imt_ms;//Initial movement time
+	short rt_s;//Relative time
+	char sta_id[8];
+	int sta_lta;//STA/LTA
+	short imd;//Initial movement derect
+	int ud_pga;//UD向PGA
+/*
+int
+4B
+单位为mm/s/s,频带范围0.1-10Hz
+*/
+	int ud_pgv;//单位为mm/s,频带范围0.1-10Hz
+	int ud_pgd;//
+	int ew_pga;
+	int ew_pgv;
+	int ew_pgd;
+	int ns_pga;
+	int ns_pgv;
+	int ns_pgd;
+	short cdv;//Column degree value
+	int ud_psa03;
+	int ud_psa10;
+	int ud_psa30;
+	int ew_psa03;
+	int ew_psa10;
+	int ew_psa30;
+	int ns_psa03;
+	int ns_psa10;
+	int ns_psa30;
+	char unuse[154];
+}__attribute__ ((packed,aligned(1)))IWS_UP_YJ;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 typedef struct iws_utc_10{
 	short year;

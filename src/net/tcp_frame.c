@@ -129,7 +129,13 @@ int set_client_sev_opt(int client_sockfd)
         exit(0);
     }
     //重启后立马可以使用端口
-    setsockopt(client_sockfd, SOL_SOCKET, SO_REUSEADDR, &on,sizeof (on)); 
+    ret=setsockopt(client_sockfd, SOL_SOCKET, SO_REUSEADDR, (void *)&on,sizeof (int));
+    if(ret!=0)
+    {
+        printf("client_sockfd=%d\n",client_sockfd);
+        perror("err:");
+        //exit(0);
+    }
    // 重启后立马可以使用端口
     //判断对方否否发生意外断开
     setsockopt(client_sockfd, SOL_SOCKET, SO_KEEPALIVE, (void *)&keepAlive, sizeof(keepAlive));  
@@ -238,10 +244,11 @@ static int create_and_bind (char *port){
     struct addrinfo hints;
     struct addrinfo *result, *rp;
     int s, sfd;
+    //snprintf(port,5,"%s","7002");
     printf(RED"inside %s line %d\n"NONE, __FUNCTION__,__LINE__);
 
     memset (&hints, 0, sizeof (struct addrinfo));
-    hints.ai_family = AF_UNSPEC;     //IPv4 IPv6通用
+    hints.ai_family = AF_INET;     //IPv4 IPv6通用
     hints.ai_socktype = SOCK_STREAM; /* We want a TCP socket */
     hints.ai_flags = AI_PASSIVE;     //监听套接字；
     printf(RED"inside %s line %d\n"NONE, __FUNCTION__,__LINE__);
@@ -270,13 +277,16 @@ static int create_and_bind (char *port){
             //bind success
             break;
         }
-
+        printf(RED"rp->ai_family=%d\n"NONE,rp->ai_family);
         close (sfd);//if bind failed we close this socket
     }
+
     printf(RED"inside %s line %d\n"NONE, __FUNCTION__,__LINE__);
 
   if (rp == NULL) {
         fprintf (stderr, "Could not bind\n");
+        printf("s=%d\n",s);
+        //exit(0);
         return -1;
   }
 

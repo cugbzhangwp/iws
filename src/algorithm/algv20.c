@@ -112,8 +112,8 @@ int band_passstruct11_11(FIR_LIST *i_fir_list,int band_pass_flag,int num,float *
 
 			i_fir_list->band_pass_data[j]=datamid-mean[j]*sum_fir;
 			}
-		i_fir_list->band_pass_data[4]=pow((double)(i_fir_list->band_pass_data[0]*i_fir_list->band_pass_data[0]+i_fir_list->band_pass_data[1]*i_fir_list->band_pass_data[1]),0.5);
-		//i_fir_list->band_pass_data[4]=pow((double)(i_fir_list->band_pass_data[0]*i_fir_list->band_pass_data[0]+i_fir_list->band_pass_data[1]*i_fir_list->band_pass_data[1]+i_fir_list->band_pass_data[2]*i_fir_list->band_pass_data[2]),0.5);
+		//i_fir_list->band_pass_data[4]=pow((double)(i_fir_list->band_pass_data[0]*i_fir_list->band_pass_data[0]+i_fir_list->band_pass_data[1]*i_fir_list->band_pass_data[1]),0.5);
+		i_fir_list->band_pass_data[4]=pow((double)(i_fir_list->band_pass_data[0]*i_fir_list->band_pass_data[0]+i_fir_list->band_pass_data[1]*i_fir_list->band_pass_data[1]+i_fir_list->band_pass_data[2]*i_fir_list->band_pass_data[2]),0.5);
 
 
 		for(j=0;j<3;j++)
@@ -128,8 +128,8 @@ int band_passstruct11_11(FIR_LIST *i_fir_list,int band_pass_flag,int num,float *
 				}
 			i_fir_list->band_pass_dataV[j]=datamid;
 			}
-		i_fir_list->band_pass_dataV[4]=pow((double)(i_fir_list->band_pass_dataV[0]*i_fir_list->band_pass_dataV[0]+i_fir_list->band_pass_dataV[1]*i_fir_list->band_pass_dataV[1]),0.5);
-//		i_fir_list->band_pass_dataV[4]=pow((double)(i_fir_list->band_pass_dataV[0]*i_fir_list->band_pass_dataV[0]+i_fir_list->band_pass_dataV[1]*i_fir_list->band_pass_dataV[1]+i_fir_list->band_pass_dataV[2]*i_fir_list->band_pass_dataV[2]),0.5);
+//		i_fir_list->band_pass_dataV[4]=pow((double)(i_fir_list->band_pass_dataV[0]*i_fir_list->band_pass_dataV[0]+i_fir_list->band_pass_dataV[1]*i_fir_list->band_pass_dataV[1]),0.5);
+		i_fir_list->band_pass_dataV[4]=pow((double)(i_fir_list->band_pass_dataV[0]*i_fir_list->band_pass_dataV[0]+i_fir_list->band_pass_dataV[1]*i_fir_list->band_pass_dataV[1]+i_fir_list->band_pass_dataV[2]*i_fir_list->band_pass_dataV[2]),0.5);
 		for(j=0;j<3;j++)
 			{
 			datamid=0.0;
@@ -1979,7 +1979,7 @@ int calculate_mean(FIR_LIST* fir_list,float *mean)
 	
 	now_list=now_list->next;
 
-	for(i=0;i<10*sample_rata-2;i++)//ÕâÀï¼õÈ¥2ÊÇÎªÁËºÍºóÃæµÄ¼ÆËãpgv£¬pgdµÄº¯ÊýÅäºÏ
+	for(i=0;i<10*sample_rata-1;i++)//ÕâÀï¼õÈ¥2ÊÇÎªÁËºÍºóÃæµÄ¼ÆËãpgv£¬pgdµÄº¯ÊýÅäºÏ
 		{
 		for(j=0;j<3;j++)
 			{
@@ -2907,7 +2907,7 @@ int PGA_V_G_11_11(FIR_LIST *i_fir_list,BAND_PASS_RESULT *band_pass_data,int *cou
 						band_pass_data->utc_nanosecond_final_PGD=now_fir->utc_nanosecond; //utcÊ±¼äÄÉÃë
 						}
 
-					now_fir=now_fir=now_fir->last;
+					now_fir=now_fir->last;
 
 					}
 
@@ -3392,7 +3392,7 @@ int PGA_V_G_11_11(FIR_LIST *i_fir_list,BAND_PASS_RESULT *band_pass_data,int *cou
 							band_pass_data->utc_nanosecond_final_PGD=now_fir->utc_nanosecond; //utcÊ±¼äÄÉÃë
 							}
 
-						now_fir=now_fir=now_fir->last;
+						now_fir=now_fir->last;
 
 
 
@@ -3928,7 +3928,7 @@ int PGA_V_G_11_11(FIR_LIST *i_fir_list,BAND_PASS_RESULT *band_pass_data,int *cou
 						band_pass_data->utc_nanosecond_final_PGD=now_fir->utc_nanosecond; //utcÊ±¼äÄÉÃë
 						}
 
-					now_fir=now_fir=now_fir->last;
+					now_fir=now_fir->last;
 
 
 
@@ -4552,7 +4552,7 @@ int PGA_V_G_11_11(FIR_LIST *i_fir_list,BAND_PASS_RESULT *band_pass_data,int *cou
 								band_pass_data->utc_nanosecond_final_PGD=now_fir->utc_nanosecond; //utcÊ±¼äÄÉÃë
 								}
 
-							now_fir=now_fir=now_fir->last;
+							now_fir=now_fir->last;
 
 
 
@@ -5177,7 +5177,7 @@ int PGA_V_G_11_11(FIR_LIST *i_fir_list,BAND_PASS_RESULT *band_pass_data,int *cou
 						band_pass_data->utc_nanosecond_final_PGD=now_fir->utc_nanosecond; //utcÊ±¼äÄÉÃë
 						}
 
-					now_fir=now_fir=now_fir->last;
+					now_fir=now_fir->last;
 
 
 
@@ -6045,7 +6045,7 @@ int PGA_V_G_11_11(FIR_LIST *i_fir_list,BAND_PASS_RESULT *band_pass_data,int *cou
 						band_pass_data->utc_nanosecond_final_PGD=now_fir->utc_nanosecond; //utcÊ±¼äÄÉÃë
 						}
 
-					now_fir=now_fir=now_fir->last;
+					now_fir=now_fir->last;
 
 
 

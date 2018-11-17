@@ -204,7 +204,6 @@ typedef struct EVT_RECORD{//
 	long utc_time[2];
 	int is_file_open;
 	char path[200];
-
 	//
 }__attribute__ ((packed,aligned(1)))EVT_RECORD;
 

@@ -25,7 +25,8 @@
 
 
 
-
+#define IWS_TRIG_PARAPATH "/home/pi/Geo_Pi"
+#define IWS_TRIG_PARAFILE "iws_trig_para.para"
 
 
 

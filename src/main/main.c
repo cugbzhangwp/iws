@@ -1823,7 +1823,7 @@ int init_iws_server_paras(IWS_SERVER * app_para)
 		return 0;
 	}
 	else if(ret==1){//有出厂设置
-		init_iws_server_paras_default();
+		//init_iws_server_paras_default();
 		if(save_bufinfile(app_para,6*sizeof(IWS_SERVER),IWS_SVR_PARAFILE,IWSPARAPATH,"w+")==0){//保存成默认设置
 				printf(GREEN"inside %s line %d\n"NONE, __FUNCTION__,__LINE__);
 				//atcmd_com_OK_rt();
@@ -1844,8 +1844,90 @@ int init_iws_server_paras(IWS_SERVER * app_para)
 	}	
 }
 
+int init_iws_tirg_paras_default()
+{
+	app.iws_para.slt_length=6;
+	app.iws_para.llt_length=100;
+	app.iws_para.threshold=15;
+	app.iws_para.trg_ch=4;
+	app.iws_para.i_l[0]=1;
+	app.iws_para.i_l[0]=1;
+	app.iws_para.i_l[0]=1;
+	return 0;
+}
 
 
+
+int init_iws_trig_paras_parafile(IWS_PARA * iws_tirg_para)//初始化硬件参数
+{
+	int ret;
+	ret=read_para_file_fromsd_comm(iws_tirg_para,sizeof(IWS_PARA),IWS_TRIG_PARAFILE,IWS_TRIG_PARAFILE);
+	printf(GREEN"inside %s line %d,ret=%d\n"NONE, __FUNCTION__,__LINE__,ret);
+	if(ret==0){
+		printf(GREEN"inside %s line %d\n"NONE, __FUNCTION__,__LINE__);
+		return 0;
+	}
+	else if(ret==1){
+		return 1;
+	}
+	else if(ret==2){
+		return 2;
+	}
+	else{
+		return -1;
+	}
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+int init_iws_trig_paras(IWS_PARA * iws_tirg_para)
+{
+	int ret;
+	printf("sizeof(IWS_PARA)=%d\n",sizeof(IWS_PARA));
+	ret=init_iws_trig_paras_parafile(iws_tirg_para);
+	if(ret==0){
+		return 0;
+	}
+	else if(ret==1){//有出厂设置
+		//init_iws_server_paras_default();
+		if(save_bufinfile(iws_tirg_para,sizeof(IWS_PARA),IWS_TRIG_PARAFILE,IWSPARAPATH,"w+")==0){//保存成默认设置
+				printf(GREEN"inside %s line %d\n"NONE, __FUNCTION__,__LINE__);
+				//atcmd_com_OK_rt();
+		}
+		return 0;
+	}
+	else if(ret==2){//没有出厂设置
+		init_iws_tirg_paras_default();
+		if(save_bufinfile(iws_tirg_para,sizeof(IWS_PARA),IWS_TRIG_PARAFILE,IWSPARAPATH,"w+")==0){//保存成默认设置
+				printf(GREEN"inside %s line %d\n"NONE, __FUNCTION__,__LINE__);
+				//atcmd_com_OK_rt();
+		}
+		if(save_bufinfile(iws_tirg_para,sizeof(IWS_PARA),IWS_TRIG_PARAFILE,IWSPARAPATH_ORIG,"w+")==0){//保存成默认设置
+				printf(GREEN"inside %s line %d\n"NONE, __FUNCTION__,__LINE__);
+				//atcmd_com_OK_rt();
+		}
+		return 0;
+	}	
+}
 
 
 
@@ -1882,13 +1964,15 @@ int init_iws_steim2_para(IWS_STEIM2 *steim2_para)
 
 int init_evt_record(APP_S * app)
 {
-	snprintf(app->evt_record.path,100,"%s","/home/pi/userdata/data/event/");
+	snprintf(app->evt_record.path,100,"%s","/home/pi/userdata/data/event");
 }
 
 
 int init_iws_paras()
 {
-	init_iws_trg_paras();
+	//init_iws_trig_paras_parafile(IWS_PARA * iws_tirg_para)//初始化硬件参数
+	//init_iws_trg_paras();
+	init_iws_trig_paras(&app.iws_para);
 	init_iws_server_paras(&app.iws_server);
 	init_iws_steim2_para(&app.steim2_para);
 	init_steim2buf(&app);
