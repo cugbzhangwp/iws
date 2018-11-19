@@ -221,12 +221,20 @@ typedef struct IWS_TRIG_PSAGET{//
 	double y0[CH_NUM_PSA][DIRECT_NUM_PSA];//***0
 	double y1[CH_NUM_PSA][DIRECT_NUM_PSA];//***0
 	int first;//***1
+
 	float zuni;//*** 0.5
 	int sample_rata;
 	float result[CH_NUM_PSA][DIRECT_NUM_PSA];//***0
 	float period[3];//{0.3,1,3}
 	long utc_time_imt[2];
 	long trig_start[2];
+
+	double dx_v[CH_NUM_PSA][DIRECT_NUM_PSA];//***0
+	double x2_v[CH_NUM_PSA][DIRECT_NUM_PSA];//***0
+	double y0_v[CH_NUM_PSA][DIRECT_NUM_PSA];//***0
+	double y1_v[CH_NUM_PSA][DIRECT_NUM_PSA];//***0
+	int first_v;
+	float result_v[CH_NUM_PSA][DIRECT_NUM_PSA];//***0
 }__attribute__ ((packed,aligned(4)))IWS_TRIG_PSAGET;
 
 
@@ -389,7 +397,7 @@ int slt_lltstru_2(FIR_LIST *data,int slt_length,int llt_length,float *result,flo
 //result : 返回的slt/llt的值
 //data: 输入的结构体指针
 //channel: 计算烈度所用的通道
-int psa_struct_2(FIR_LIST *i_list,float sample_rata,float zuni,float *period,float *result,double *dx,double *x2,double *y0,double *y1,int *first);
+int psa_struct_2(FIR_LIST *i_list,float sample_rata,float zuni,float *period,float *result,double *dx,double *x2,double *y0,double *y1,int *first,float *mean);
 int resample2(FIR_LIST1 *i_fir_list,int* location,FIR_LIST *i_result_list,int* first_time,int vector_type);
 //第一次调用的时候将location 和first_time 所指的值赋为1
 //以后每次只要调用就行
@@ -407,4 +415,5 @@ extern int iws_do_trig_pre(BAND_PASS_RESULT *band_pass_data,float * result,int f
 extern int get_imt(FIR_LIST *list,long * imt,long * trig_start);
 extern int first_direction(FIR_LIST *i_fir_list,float threshold,int fir_length);
 extern float New_Intensity_calculation(float pga,float pgv,int style);
+extern int iws_do_trig_psv_pre(float * result);
 #endif

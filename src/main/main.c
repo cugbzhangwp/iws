@@ -423,9 +423,12 @@ int init_read_conf_file()
 {
 	//read_conf_value(const char *key,char *value,const char *file);
 	char port[8];
+	char udpport[8];
 	char buf[64];
 	read_conf_value("BASE_PORT",port,IWS_CONF_FILE);
 	sscanf(port,"%d",&app.app_server.base_port);
+	read_conf_value("UDP_PORT",udpport,IWS_CONF_FILE);
+	sscanf(udpport,"%d",&app.udp_port);
 	printf("app.app_server.base_port=%d\n",app.app_server.base_port);
 	read_conf_value("IS_NTP_SYNC",buf,IWS_CONF_FILE);
 	sscanf(buf,"%d",&app.iws_server_share.status.is_clock_sync_ntp);
@@ -828,6 +831,202 @@ int getip_main(APP_S * app)
 
 
 
+
+void log_file_scan(int index,char * fileurl)
+{
+	// char index_str[16];
+	// sscanf(fileurl,"/home/pi/userdata/log/%[0-9].",index_str);
+	// sscanf(index_str,"%d",&app.iws_file_list[ifor].file_index);
+
+}
+
+
+int init_log_env(IWS_LOG_FRAME * iws_log_frame)
+{	
+    snprintf(iws_log_frame->path,256,"%s","/home/pi/userdata/log");
+    iws_log_frame->file_index=0;
+    struct dirent **namelist;
+    char file[128];
+    char file_url[256];
+    char date_time_str[64];
+	struct timespec date_time;//数据采集时间
+	
+
+	  int ic,n = scandir(iws_log_frame->path,&namelist,0,alphasort);
+
+	  if(n < 0)
+	  { 
+	      printf("scandir return \n");
+	  }
+	  else
+	  {
+	  	sscanf(namelist[n-1]->d_name,"%d",&iws_log_frame->file_index);
+	  	
+	      int index=0;
+	      while(index < n)
+	      {
+	          //printf("d_ino：%ld  d_off:%ld d_name: %s\n", namelist[index]->d_ino,namelist[index]->d_off,namelist[index]->d_name);
+	          //snprintf(file_url,1000,"%s/%s",basePath,namelist[index]->d_name);
+	          //(*callbackfun)(ic,file_url);
+	          
+	          ic++;
+	          free(namelist[index]);
+	          index++;
+	      }
+	      free(namelist);
+	  }
+	  iws_log_frame->file_index=iws_log_frame->file_index+1;
+	  clock_gettime(CLOCK_REALTIME, &date_time);
+	  get_time_str1(date_time.tv_sec,date_time_str);
+		snprintf(file_url,200,"%s/%04d_%s.log",iws_log_frame->path,iws_log_frame->file_index,date_time_str);//0614正常使用模式
+		printf("log file is %s\n",file_url);
+	//exit(0);
+	iws_log_frame->fp=fopen(file_url,"w+");
+	setbuf(iws_log_frame->fp,NULL);
+	printf("log file is %s\n",file_url);
+	if(iws_log_frame->fp!=NULL){
+		printf("log file is %s\n",file_url);
+		iws_log_frame->is_file_open=1;
+		return 0;
+	}
+	else{
+		iws_log_frame->is_file_open=0;
+		return -1;
+	}
+    //myscandir(iws_log_frame->path,0,log_file_scan);
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+int open_new_log_file(IWS_LOG_FRAME * iws_log_frame)
+{	
+    char file[128];
+    char file_url[256];
+    char date_time_str[64];
+	struct timespec date_time;//数据采集时间
+	clock_gettime(CLOCK_REALTIME, &date_time);
+	get_time_str1(date_time.tv_sec,date_time_str);
+	snprintf(file_url,200,"%s/%04d_%s.log",iws_log_frame->path,iws_log_frame->file_index,date_time_str);//0614正常使用模式
+	iws_log_frame->fp=fopen(file_url,"w+");
+	setbuf(iws_log_frame->fp,NULL);
+	if(iws_log_frame->fp!=NULL){
+		printf("log file is %s\n",file_url);
+		iws_log_frame->is_file_open=1;
+		return 0;
+	}
+	else{
+		iws_log_frame->is_file_open=0;
+		return -1;
+	}
+    //myscandir(iws_log_frame->path,0,log_file_scan);
+    return 0;
+}
+
+
+
+int mk_log_time_mark(IWS_LOG_FRAME * iws_log_frame)
+{
+	struct timespec date_time;//数据采集时间
+	char date_time_str[64];
+	int realwrite;
+	clock_gettime(CLOCK_REALTIME, &date_time);
+	get_time_str1(date_time.tv_sec,date_time_str);
+	fprintf(iws_log_frame->fp, "%s\n", date_time_str);
+	//realwrite=mywrite(date_time_str,strlen(date_time_str),iws_log_frame->fp);
+	return 0;
+
+}
+
+
+int write_log_to_file(IWS_LOG_FRAME * iws_log_frame)
+{
+	int ifor;
+	int realwrite;
+	int is_time_mark=0;
+	for(ifor=0;ifor<100;ifor++)
+	  {
+	  	//printf(RED"try write log ifor=%d,iws_log_frame->iws_log[ifor].is_log_ready=%d\n"NONE,ifor,iws_log_frame->iws_log[ifor].is_log_ready);
+	  	if(iws_log_frame->iws_log[ifor].is_log_ready==1){
+	  		if(is_time_mark==0){
+	  			mk_log_time_mark(iws_log_frame);
+	  			is_time_mark=1;
+	  		}
+			realwrite=mywrite(iws_log_frame->iws_log[ifor].logstr,iws_log_frame->iws_log[ifor].len,iws_log_frame->fp);
+	  		iws_log_frame->iws_log[ifor].is_log_ready=0;
+	  		//printf("HAVE write to log file realwrite=%d\n",realwrite);
+	  		iws_log_frame->count++;
+	  	}
+	  }
+	  if(is_time_mark==1){
+	  	fprintf(iws_log_frame->fp, "%s\n\n", "END THIS LOG");
+	  }
+	  
+	  return 0;
+}
+
+int log_main(APP_S * app)
+{
+	init_log_env(&app->iws_log_frame);
+
+	for(;;)
+	{	if(app->iws_log_frame.is_file_open==1){
+			write_log_to_file(&app->iws_log_frame);
+		}
+
+		if(app->iws_log_frame.count>1000){
+			app->iws_log_frame.count=0;
+			app->iws_log_frame.file_index=app->iws_log_frame.file_index+1;
+			fclose(app->iws_log_frame.fp);
+			open_new_log_file(&app->iws_log_frame);
+		}
+		sleep(1);
+    //return 0;
+		//printf("%s\n",getenv("PATH"));
+		//printf("ntp status=%s\n",getenv("TRY_RESTARTTIMES"));
+		//system("env > env.txt");
+		//exit(0);
+	}
+}
+
+int ntp_info_parse(char *buf)
+{
+;
+}
+
+
+int ntp_check_main(APP_S * app)
+{
+   FILE   *stream; 
+   FILE   *wstream;
+   char   buf[1024]; 
+     
+    //wstream = fopen( "test_popen.txt", "w+"); //新建一个可写的文件
+    for(;;){
+       memset( buf, '\0', sizeof(buf) );//初始化buf,以免后面写如乱码到文件中
+    	stream = popen( "ntpq -p", "r" ); //将“ls －l”命令的输出 通过管道读取（“r”参数）到FILE* stream
+
+	    fread( buf, sizeof(char), sizeof(buf), stream); //将刚刚FILE* stream的数据流读取到buf中
+	    //fwrite( buf, 1, sizeof(buf), wstream );//将buf中的数据写到FILE    *wstream对应的流中，也是写到文件中
+	   	//printf("buf=%s\n",buf);
+	   	ntp_info_parse(buf);
+	   	pclose( stream );
+	   	sleep(10);
+    }
+}
+
 int app_thread_init(THREAD_COTR_S * app_thread)
 {
 	printf(RED"inside %s line %d\n"NONE, __FUNCTION__,__LINE__);
@@ -1038,7 +1237,21 @@ typedef struct THREAD_COTR{//命令行参数
 	app_thread[22].index=0;
 
 
+	strcpy(app_thread[23].name,"log server");
+	app_thread[23].thread_func=log_main;
+	app_thread[23].para=&app;
+	app_thread[23].run_status=0;
+	app_thread[23].conf_status=1;
+	app_thread[23].dependent=0;
+	app_thread[23].index=0;
 
+	strcpy(app_thread[24].name,"ntp_check server");
+	app_thread[24].thread_func=ntp_check_main;
+	app_thread[24].para=&app;
+	app_thread[24].run_status=0;
+	app_thread[24].conf_status=1;
+	app_thread[24].dependent=0;
+	app_thread[24].index=0;
 
 //int async_alg_main(APP_S *app)//异步算法处理过程
 	return 0;
@@ -1064,7 +1277,7 @@ typedef struct THREAD_COTR{//命令行参数
 	int control[20];
 }__attribute__ ((packed,aligned(1)))THREAD_COTR_S;
 */	int ifor;
-	for(ifor=0;ifor<23;ifor++)
+	for(ifor=0;ifor<25;ifor++)
 	{
 		if(app_thread[ifor].run_status==0&&app_thread[ifor].conf_status==1){
 			printf(GREEN"inside %s line %d\n"NONE, __FUNCTION__,__LINE__);
@@ -1744,6 +1957,9 @@ int init_iws_trg_paras()
 	app.iws_para.i_l[0]=1;
 	app.iws_para.i_l[0]=1;
 	app.iws_para.i_l[0]=1;
+	app.iws_para.iws_install_info.a=3;
+	app.iws_para.iws_install_info.b=270;
+	app.iws_para.iws_install_info.c=0;
 	return 0;
 }
 
@@ -1966,7 +2182,11 @@ int init_evt_record(APP_S * app)
 {
 	snprintf(app->evt_record.path,100,"%s","/home/pi/userdata/data/event");
 }
+int init_cilent_psv(APP_S * app)
+{
+	snprintf(app->iws_cilnet_psv.head,8,"%s","SI_HEAD");
 
+}
 
 int init_iws_paras()
 {
@@ -1978,6 +2198,7 @@ int init_iws_paras()
 	init_steim2buf(&app);
 	init_status_out_buf(&app);
 	init_evt_record(&app);
+	init_cilent_psv(&app);
 	return 0;
 }
 
@@ -1985,6 +2206,8 @@ int init_paras()
 {
 	app.gps_data=&gps_data;
 	init_iws_paras();
+	GetCompileTime(app.compiler_time);
+	printf("GetCompileTime(app.compiler_time);=%s\n",app.compiler_time);
 	return 0;
 }
 
@@ -2087,7 +2310,8 @@ int printf_file_list()
 int main(int argc,char ** argv)
 {	
 
-	int tmp_len=2048-100-118-88-sizeof(IWS_PAK_BUF)-sizeof(IWS_STEIM2)-sizeof(IWS_PARA);
+
+	int tmp_len=2048-132-118-92-sizeof(IWS_RQ_TIME)-sizeof(IWS_PAK_BUF)-sizeof(IWS_STEIM2)-sizeof(IWS_PARA);
 	printf("tmp_len=%d,sizeof(IWS_SERVER)=%d,sizeof(IWS_RQ_TIME)=%d\n",tmp_len,sizeof(IWS_SERVER),sizeof(IWS_RQ_TIME));
 	printf("sizeof(IWS_SERVER)=%d\n",sizeof(IWS_SERVER));
 	printf("sizeof(IWS_STEIM2)=%d\n",sizeof(IWS_STEIM2));
@@ -2203,6 +2427,7 @@ RELAY_ADDR 0x76
 
 	app.argv=argv;
 	app.argc=argc;
+	//log_main(&app);
 	printf("argc=%d,argv[1]=%s\n",app.argc,app.argv[1]);
 	//exit(0);
 	//gps_main(&app);

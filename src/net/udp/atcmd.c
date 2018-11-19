@@ -482,8 +482,6 @@ int atcmd_iws_getpara(char * buf,int length)
 
 
 
-
-
 int atcmd_setpca(char * buf,int length)
 {
 	//41 54 2b 53 45 54 41 44 3d 01 01 20 B0 E0 00 00 00 00 00 00 04 01 23 45 67 01 01 01 01 0d 0a
@@ -822,16 +820,23 @@ int atcmd_setsid(char * buf,int length)
 	int index;
 	char sid[16];
 	char key[64];
+	char ch1[16];
+	char ch2[16];
+	char ch3[16];
 	buf[length-2]='\0';
+	printf("buf=%s\n",buf);
 	//sprintf(ntp,"%s",buf);
 	//	snprintf(sendbuf,512,"%d,%s,%s",app.iws_server[type].index,app.iws_server[type].sid,app.iws_server[type].server_key);
 
-	int ret=sscanf(buf,"%d,%[^,],%s",&index,sid,key);
+	int ret=sscanf(buf,"%d,%[^,],%[^,],%[^,],%[^,],%[^,]",&index,sid,key,ch1,ch2,ch3);
 	int ifor;
 	snprintf(app.iws_server[index].sid,16,"%s",sid);
 	snprintf(app.iws_server[index].server_key,36,"%s",key);
-	printf("index=%d,sid=%s,key=%s\n",app.iws_server[index].index,app.iws_server[index].sid,app.iws_server[index].server_key);
-
+	snprintf(app.iws_server[index].ch_label[0],4,"%s",ch1);
+	snprintf(app.iws_server[index].ch_label[1],4,"%s",ch2);
+	snprintf(app.iws_server[index].ch_label[2],4,"%s",ch3);
+	printf("index=%d,sid=%s,key=%s,ch1=%s,ch2=%s,ch3=%s\n",app.iws_server[index].index,app.iws_server[index].sid,app.iws_server[index].server_key,ch1,ch2,ch3);
+//index=0,sid=CE.A0001,key=0123546,EIE,EIN,EIZ,ch1 �,ch2=`��~,ch3=
 /*
 IPADDR=192.168.0.210/24
 GATEWAY=192.168.0.1
@@ -852,6 +857,129 @@ int atcmd_getsid(char * buf,int length)
 	//snprintf(app.iws_server[type].sid,16,"%s","jd.00001");
 	//snprintf(app.iws_server[type].server_key,36,"12345678901234567890123456789012");
 
+	snprintf(sendbuf,512,"%d,%s,%s,%s,%s,%s",\
+		app.iws_server[type].index,\
+		app.iws_server[type].sid,\
+		app.iws_server[type].server_key,\
+		app.iws_server[type].ch_label[0],\
+		app.iws_server[type].ch_label[1],\
+		app.iws_server[type].ch_label[2]);
+	//printf("============================%s\n",sendbuf);
+	//printf("============================%s\n",sendbuf);
+
+	sendlen=strlen(sendbuf);
+	printf("type=%d sendlen=%d sendbuf=%s\n",type,sendlen,sendbuf);
+	//sendlen=strlen(sendbuf);
+	sendbuf[sendlen++]=0x0d;
+	sendbuf[sendlen++]=0x0a;
+	return 0;
+}
+
+
+
+
+
+int atcmd_setxuanzhuan(char * buf,int length)
+{
+	buf[length-2]='\0';
+	sscanf(buf,"%d,%d,%d",\
+		&app.iws_para.iws_install_info.a,\
+		&app.iws_para.iws_install_info.b,\
+		&app.iws_para.iws_install_info.c);
+	printf("buf=%s",buf);
+	printf(RED"app.iws_install_info.a=%d\n,\
+			app.iws_install_info.b=%d\n,\
+			app.iws_install_info.c=%d\n"NONE,\
+			app.iws_para.iws_install_info.a,\
+			app.iws_para.iws_install_info.b,\
+			app.iws_para.iws_install_info.c);
+	// app.iws_para.iws_install_info.a=app.iws_install_info.a;
+	// app.iws_para.iws_install_info.b=app.iws_install_info.b;
+	// app.iws_para.iws_install_info.c=app.iws_install_info.c;
+	if(save_bufinfile(&app.iws_para,sizeof(IWS_PARA),IWS_TRIG_PARAFILE,IWS_TRIG_PARAPATH,"w+")==0){
+		atcmd_com_OK_rt();
+	}
+	return 0;
+}
+
+
+int atcmd_getxuanzhuan(char * buf,int length)
+{
+	snprintf(sendbuf,512,"%d,%d,%d",\
+		app.iws_para.iws_install_info.a,\
+		app.iws_para.iws_install_info.b,\
+		app.iws_para.iws_install_info.c);
+	printf("============================%s\n",sendbuf);
+	sendlen=strlen(sendbuf);
+	printf("sendlen=%d sendbuf=%s\n",sendlen,sendbuf);
+	//sendlen=strlen(sendbuf);
+	sendbuf[sendlen++]=0x0d;
+	sendbuf[sendlen++]=0x0a;
+	return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+int atcmd_setcid(char * buf,int length)
+{
+	int index;
+	char ch1[16];
+	char ch2[16];
+	char ch3[16];
+	buf[length-2]='\0';
+	//sprintf(ntp,"%s",buf);
+	//	snprintf(sendbuf,512,"%d,%s,%s",app.iws_server[type].index,app.iws_server[type].sid,app.iws_server[type].server_key);
+
+	int ret=sscanf(buf,"%d,%s,%s,%s",&index,ch1,ch2,ch3);
+	int ifor;
+	snprintf(app.iws_server[index].ch_label[0],16,"%s",ch1);
+	snprintf(app.iws_server[index].ch_label[1],16,"%s",ch2);
+	snprintf(app.iws_server[index].ch_label[2],16,"%s",ch3);
+	printf("index=%d,ch_label[0]=%s,ch_label[2]=%s,,ch_label[3]=%s\n",app.iws_server[index].ch_label[0],app.iws_server[index].ch_label[1],app.iws_server[index].ch_label[2]);
+
+/*
+IPADDR=192.168.0.210/24
+GATEWAY=192.168.0.1
+DNS=192.168.0.1
+*/
+	//init_cstp(&app.iws_cstp[index],index);
+//&app->iws_cstp[connect_index].iws_up_wavedata
+	atcmd_com_OK_rt();
+	//atcmd_com_OK_rt();
+	return 0;
+}
+
+
+int atcmd_getcid(char * buf,int length)
+{
+	int type;
+	sscanf(buf,"%d",&type);
+	//snprintf(app.iws_server[type].sid,16,"%s","jd.00001");
+	//snprintf(app.iws_server[type].server_key,36,"12345678901234567890123456789012");
+
 	snprintf(sendbuf,512,"%d,%s,%s",app.iws_server[type].index,app.iws_server[type].sid,app.iws_server[type].server_key);
 	printf("============================%s\n",sendbuf);
 	sendlen=strlen(sendbuf);
@@ -861,6 +989,32 @@ int atcmd_getsid(char * buf,int length)
 	sendbuf[sendlen++]=0x0a;
 	return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -922,6 +1076,12 @@ AT_CMD_CALL iws_atcmd[]={
 	{"SETIP",atcmd_setip},////atcmd_saveserver
 	{"SETSID",atcmd_setsid},////atcmd_saveserver
 	{"GETSID",atcmd_getsid},////atcmd_saveserver
+
+	//{"SETCID",atcmd_setcid},////set channel id
+	//{"GETCID",atcmd_getcid},////get channel id
+	{"SETXZ",atcmd_setxuanzhuan},
+	{"GETXZ",atcmd_getxuanzhuan},
+
 
 };
 struct sockaddr_in host_gps_addr; /* cilent's address information */
@@ -1191,18 +1351,18 @@ int udp_atcmd_main1(APP_S * app)
 
 
 
-void handle_udp_msg(int fd)
-{	app.app_udp_socket[UDP_ATCMD].fid=fd;
+void handle_udp_msg(APP_S * app,int fd)
+{	app->app_udp_socket[UDP_ATCMD].fid=fd;
     char buf[BUFF_LEN];  //接收缓冲区，1024字节
     socklen_t len;
     int count;
-    struct sockaddr_in clent_addr;  //clent_addr用于记录发送方的地址信息
+    //struct sockaddr_in clent_addr;  //clent_addr用于记录发送方的地址信息
     int ifor;
-    while(app.thread_switch.main_loop)
+    while(app->thread_switch.main_loop)
     {
         //memset(buf, 0, BUFF_LEN);
-        len = sizeof(clent_addr);
-        count = recvfrom(app.app_udp_socket[UDP_ATCMD].fid, recvbuf, BUFF_LEN, 0, (struct sockaddr*)&clent_addr, &len);  //recvfrom是拥塞函数，没有数据就一直拥塞
+        len = sizeof(app->clent_addr);
+        count = recvfrom(app->app_udp_socket[UDP_ATCMD].fid, recvbuf, BUFF_LEN, 0, (struct sockaddr*)&app->clent_addr, &len);  //recvfrom是拥塞函数，没有数据就一直拥塞
         if(count == -1)
         {
             printf("recieve data fail!\n");
@@ -1217,7 +1377,7 @@ void handle_udp_msg(int fd)
 		if(atcmd_pre_check(recvbuf,count)==0){
 			//sendnbytes(app->app_udp_socket[UDP_ATCMD].fid,"OK",2);
 			//return_callback(return_callback_buf,return_callback_len);
-			sendto(app.app_udp_socket[UDP_ATCMD].fid,sendbuf,sendlen,0,(struct sockaddr*)&clent_addr, len);
+			sendto(app->app_udp_socket[UDP_ATCMD].fid,sendbuf,sendlen,0,(struct sockaddr*)&app->clent_addr, len);
 			for(ifor=0;ifor<sendlen;ifor++){
 				printf("%02X ",sendbuf[ifor]);
 			}
@@ -1225,7 +1385,7 @@ void handle_udp_msg(int fd)
 			
 		}
 		else{
-			sendto(app.app_udp_socket[UDP_ATCMD].fid,"ERR ATCMD\n",sizeof("ERR ATCMD\n"),0,(struct sockaddr*)&clent_addr, len);
+			sendto(app->app_udp_socket[UDP_ATCMD].fid,"ERR ATCMD\n",sizeof("ERR ATCMD\n"),0,(struct sockaddr*)&app->clent_addr, len);
 		}
         // printf("client:%s\n",recvbuf);  //打印client发过来的信息
         // memset(recvbuf, 0, BUFF_LEN);
@@ -1246,7 +1406,7 @@ int udp_atcmd_main(APP_S * app)
 {
     int server_fd, ret;
     struct sockaddr_in ser_addr; 
-
+    app->app_udp_socket[UDP_ATCMD].fid=0;
     server_fd = socket(AF_INET, SOCK_DGRAM, 0); //AF_INET:IPV4;SOCK_DGRAM:UDP
     if(server_fd < 0)
     {
@@ -1257,7 +1417,7 @@ int udp_atcmd_main(APP_S * app)
     memset(&ser_addr, 0, sizeof(ser_addr));
     ser_addr.sin_family = AF_INET;
     ser_addr.sin_addr.s_addr = htonl(INADDR_ANY); //IP地址，需要进行网络序转换，INADDR_ANY：本地地址
-    ser_addr.sin_port = htons(SERVER_PORT);  //端口号，需要网络序转换
+    ser_addr.sin_port = htons(app->udp_port);  //端口号，需要网络序转换
 	int flag=1,len=sizeof(int); 
 	if( setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &flag, len) == -1) 
 	{ 
@@ -1271,7 +1431,7 @@ int udp_atcmd_main(APP_S * app)
         printf("atcmd socket bind fail!\n");
         //return -1;
     }
-    handle_udp_msg(server_fd);   //处理接收到的数据
+    handle_udp_msg(app,server_fd);   //处理接收到的数据
 
     close(server_fd);
     return 0;

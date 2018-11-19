@@ -331,3 +331,16 @@ int listfiles(char *basePath,int isrecursion)
 
 
 
+int get_time_str1(long tv,char * strTime)
+{
+ 
+        //char strTime[32];
+        struct tm *ptm = gmtime(&tv);  //将秒转换成struct tm的形式
+        strftime(strTime, 32, "%F-%T", ptm);
+        //printf("%s ", strTime); //输出精确到秒
+        return 0;
+}
+
+
+
+

@@ -1,4 +1,141 @@
 #include <algv20.h>
+
+
+int psa_struct_11(FIR_LIST *i_list,float sample_rata,float zuni,float *period,float *result,double *dx,double *x2,double *y0,double *y1,int *first,float * mean)
+	{
+	//double *dx,double *x2,double *y0,double *y1,int *first 这些变量都新弄一份
+	//这个是计算 PSV的
+
+	int j,i,k,kkk;
+	double dp,z,w,xt,c1,c2,c3,dx0,sa2,y2;
+	double dlt=1.0/sample_rata;
+	for(kkk=0;kkk<3;kkk++)
+		{
+
+		
+		for(j=0;j<3;j++)
+			{
+			//result[j]=0.0;//*在外面设置为零
+			dp=period[j]/10.0;//
+			//l=1;//
+			//if(dp<dt)
+			//	l=int(dt/dp+1.0-0.00001);
+			//dlt=dt/l;//
+			w=3.1415926535897932384*2/period[j];//
+			z=exp(-1*zuni*w*dlt);//
+
+			xt=w*pow(1.0-zuni*zuni,0.5)*dlt;//
+			c1=2.0*z*cos(xt);//
+			c2=-1*z*z;//
+			c3=-1*z*sin(xt)/xt;//
+			if(*first==1)
+				{
+
+				dx[kkk*3+j]=i_list->dataV[kkk];//*
+				x2[kkk*3+j]=i_list->dataV[kkk];//*
+				y0[kkk*3+j]=0.0;//*
+				y1[kkk*3+j]=c3*i_list->dataV[kkk];//*
+
+
+				}
+			else
+				{
+
+				//for (i=0;i<i_list->data_num-1;i++)
+				//	{
+
+					dx0=dx[kkk*3+j];
+					dx[kkk*3+j]=(i_list->dataV[kkk]-i_list->last->dataV[kkk]);
+					//for(k=0;k<l;k++)
+					//	{
+					x2[kkk*3+j]=x2[kkk*3+j]+dx[kkk*3+j];
+					y2=c1*y1[kkk*3+j]+c2*y0[kkk*3+j];
+					//if(k==0)
+					y2+=c3*(dx[kkk*3+j]-dx0);
+					sa2=abs(x2[kkk*3+j]+y2);
+
+					if(sa2>result[kkk*3+j])
+						result[kkk*3+j]=sa2;
+					y0[kkk*3+j]=y1[kkk*3+j];
+					y1[kkk*3+j]=y2;
+
+						//}
+					//}
+				}
+			
+			}
+		}
+
+	if(*first==1)
+	*first=2;
+	return 1;
+
+	}
+
+
+
+
+int coordinate_conversion(int a,float b,float c,FIR_LIST *fir_list)
+	{
+	float a0=fir_list->data[0];
+	float a1=fir_list->data[1];
+	float a2=fir_list->data[2];
+	double Pi=3.14159265358979323;
+	//这里默认正东为x，正北为y，向上为z
+	//也就是说 data【0】 东西  data【1】 南北 data【2】 上下
+	//这个可以是list1做，也可以是list做s
+	//printf("cos(Pi=%f    )\n",cos(Pi));
+	if(a==-1)
+		{
+
+		fir_list->data[2]=-1*a0;
+		fir_list->data[0]=cos(Pi*(90+b)/180.0)*a1+cos(Pi*(90+c)/180.0)*a2;
+		fir_list->data[1]=cos(Pi*b/180.0)*a1+cos(Pi*c/180.0)*a2;
+
+		}
+	else if(a==1)
+		{
+		fir_list->data[2]=a0;
+		fir_list->data[0]=cos(Pi*(90+b)/180.0)*a1+cos(Pi*(90+c)/180.0)*a2;
+		fir_list->data[1]=cos(Pi*b/180.0)*a1+cos(Pi*c/180.0)*a2;
+
+
+		}
+	else if(a==-2)
+		{
+		fir_list->data[2]=-1*a1;
+		fir_list->data[0]=cos(Pi*(90+b)/180.0)*a2+cos(Pi*(90+c)/180.0)*a0;
+		fir_list->data[1]=cos(Pi*b/180.0)*a2+cos(Pi*c/180.0)*a0;
+
+
+		}
+	else if(a==2)
+		{
+		fir_list->data[2]=a1;
+		fir_list->data[0]=cos(Pi*(90+b)/180.0)*a2+cos(Pi*(90+c)/180.0)*a0;
+		fir_list->data[1]=cos(Pi*b/180.0)*a2+cos(Pi*c/180.0)*a0;
+
+
+		}
+	else if(a==-3)
+		{
+		fir_list->data[2]=-1*a2;
+		fir_list->data[0]=cos(Pi*(90+b)/180.0)*a0+cos(Pi*(90+c)/180.0)*a1;
+		fir_list->data[1]=cos(Pi*b/180.0)*a0+cos(Pi*c/180.0)*a1;
+
+
+		}
+	else if(a==3)
+		{
+		fir_list->data[2]=a2;
+		fir_list->data[0]=cos(Pi*(90+b)/180.0)*a0+cos(Pi*(90+c)/180.0)*a1;
+		fir_list->data[1]=cos(Pi*b/180.0)*a0+cos(Pi*c/180.0)*a1;
+
+
+		}
+	return 1;
+
+	}
 int band_passstruct11_11(FIR_LIST *i_fir_list,int band_pass_flag,int num,float *mean)     //   这里需要再加一个参数标记事件后的数据点数，用以去除直流偏置从事件的前十秒开始？或者是3秒   第一次触发要调用一次用来计算3秒的值
 	{
 	//计算当前点的dataD dataV 以及 band_pass_data band_pass_dataV band_pass_dataD
@@ -1979,7 +2116,7 @@ int calculate_mean(FIR_LIST* fir_list,float *mean)
 	
 	now_list=now_list->next;
 
-	for(i=0;i<10*sample_rata-1;i++)//ÕâÀï¼õÈ¥2ÊÇÎªÁËºÍºóÃæµÄ¼ÆËãpgv£¬pgdµÄº¯ÊýÅäºÏ
+	for(i=0;i<10*sample_rata;i++)//ÕâÀï¼õÈ¥2ÊÇÎªÁËºÍºóÃæµÄ¼ÆËãpgv£¬pgdµÄº¯ÊýÅäºÏ
 		{
 		for(j=0;j<3;j++)
 			{
@@ -2911,7 +3048,7 @@ int PGA_V_G_11_11(FIR_LIST *i_fir_list,BAND_PASS_RESULT *band_pass_data,int *cou
 
 					}
 
-				*count=1;
+				*count=2;
 				*trig=2;
 				}
 			else
@@ -3046,7 +3183,7 @@ int PGA_V_G_11_11(FIR_LIST *i_fir_list,BAND_PASS_RESULT *band_pass_data,int *cou
 
 				//	}
 
-				*count=1;
+				*count=2;
 				/**count+=1;*/
 				*trig=3;
 
@@ -3402,7 +3539,7 @@ int PGA_V_G_11_11(FIR_LIST *i_fir_list,BAND_PASS_RESULT *band_pass_data,int *cou
 
 
 
-					*count=1;
+					*count=2;
 					*trig=2;
 					}
 				else
@@ -3541,7 +3678,7 @@ int PGA_V_G_11_11(FIR_LIST *i_fir_list,BAND_PASS_RESULT *band_pass_data,int *cou
 									//	}
 
 
-									*count=1;
+									*count=2;
 									*trig=3;
 
 									}
@@ -3938,7 +4075,7 @@ int PGA_V_G_11_11(FIR_LIST *i_fir_list,BAND_PASS_RESULT *band_pass_data,int *cou
 
 
 				*trig=2;
-				*count=1;
+				*count=2;
 				}
 			else
 				{
@@ -4055,7 +4192,7 @@ int PGA_V_G_11_11(FIR_LIST *i_fir_list,BAND_PASS_RESULT *band_pass_data,int *cou
 								//	}
 
 
-								*count=1;
+								*count=2;
 								*trig=3;
 
 								}
@@ -4561,7 +4698,7 @@ int PGA_V_G_11_11(FIR_LIST *i_fir_list,BAND_PASS_RESULT *band_pass_data,int *cou
 
 
 						*trig=2;
-						*count=1;
+						*count=2;
 						}
 					else
 						{
@@ -4678,7 +4815,7 @@ int PGA_V_G_11_11(FIR_LIST *i_fir_list,BAND_PASS_RESULT *band_pass_data,int *cou
 						//	}
 
 
-						*count=1;
+						*count=2;
 						*trig=3;
 
 						}
@@ -5187,7 +5324,7 @@ int PGA_V_G_11_11(FIR_LIST *i_fir_list,BAND_PASS_RESULT *band_pass_data,int *cou
 
 
 				*trig=2;
-				*count=1;
+				*count=2;
 				}
 			else
 				{
@@ -5306,7 +5443,7 @@ int PGA_V_G_11_11(FIR_LIST *i_fir_list,BAND_PASS_RESULT *band_pass_data,int *cou
 				//	}
 
 
-				*count=1;
+				*count=2;
 				*trig=3;
 
 				}
@@ -6055,7 +6192,7 @@ int PGA_V_G_11_11(FIR_LIST *i_fir_list,BAND_PASS_RESULT *band_pass_data,int *cou
 
 
 				*trig=2;
-				*count=1;
+				*count=2;
 				}
 			else
 				{
@@ -6174,7 +6311,7 @@ int PGA_V_G_11_11(FIR_LIST *i_fir_list,BAND_PASS_RESULT *band_pass_data,int *cou
 								//	}
 
 
-								*count=1;
+								*count=2;
 								*trig=3;
 
 								}

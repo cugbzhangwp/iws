@@ -7,7 +7,11 @@
 #include <iws.h>
 #include <alg.h>
 #include <ublox.h>
-
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <stdlib.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 extern int setbit(int num, int bit);
 extern int clearbit(int num, int bit);
@@ -151,6 +155,9 @@ typedef struct APP_SIGNAL{//
 	int sig_trig_ti_write_buf_total;//触发后写指针,仪器启动后单调增大
 	int sig_trig_ti_write_buf;//触发后写指针
 	int sig_trig_ti_send_buf;//触发后读指针；
+	int sig_trig_yj_write_buf;
+	int sig_trig_yj_write_buf_total;
+	int sig_trig_yj_send_buf;
 }__attribute__ ((packed,aligned(1)))APP_SIGNAL_S;
 
 
@@ -272,6 +279,7 @@ typedef struct APP{//命令行参数
 	int buf[2][5000];
 	int server_index;
 	int ping_pang;
+	unsigned short udp_port;
 	IWS_UP_WAVEDATA_EXT iws_wave_pak_ext[IWS_UP_WAVEDATA_EXT_NUM];
 	IWS_UP_WAVEDATA iws_wave_pak[1000];
 	IWS_UP_TI iws_up_ti[1000];
@@ -285,6 +293,12 @@ typedef struct APP{//命令行参数
 	unsigned int globe_steim2_file_index;
 	IWS_PAK_BUF iws_pak_buf;
 	IWS_UP_SI_EXT iws_up_si_ext[1000];
+	IWS_LOG_FRAME iws_log_frame;
+	IWS_UP_YJ iws_up_yj[1000];
+	IWS_INSTALL_INFO iws_install_info;
+	char compiler_time[32];
+	struct sockaddr_in clent_addr;
+	IWS_CILENT_PSV iws_cilnet_psv;
 }__attribute__ ((packed,aligned(1)))APP_S;
 //#include <ad1256.h>
 APP_S app;

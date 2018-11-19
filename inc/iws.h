@@ -58,7 +58,12 @@ typedef struct  FIR_LIST;
 
 
 
-
+typedef struct IWS_INSTALL_INFO{//设备注册包
+	int a;
+	int b;
+	int c;
+	int unuse[13];
+}__attribute__ ((packed,aligned(1)))IWS_INSTALL_INFO;
 
 
 
@@ -75,7 +80,7 @@ typedef struct IWS_PARA{////
 	int filter_chose;//滤波器选择
 	int threshold_a[3];//***
 	int trig_flag;//***
-	unsigned char reserve[64];
+	IWS_INSTALL_INFO iws_install_info;
 	//float result;
 	//
 }__attribute__ ((packed,aligned(1)))IWS_PARA;
@@ -169,6 +174,30 @@ typedef struct IWS_UP_SI{//狀態信息包
 
 
 
+typedef struct IWS_CILENT_PSV{//狀態信息包
+	char head[8];
+	int ud_pga;//UD向PGA
+	int ud_pgv;//单位为mm/s,频带范围0.1-10Hz
+	int ud_pgd;//
+	int ew_pga;
+	int ew_pgv;
+	int ew_pgd;
+	int ns_pga;
+	int ns_pgv;
+	int ns_pgd;
+}__attribute__ ((packed,aligned(1)))IWS_CILENT_PSV;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 typedef struct IWS_EXT_HEAD{//狀態信息包
@@ -225,6 +254,7 @@ int
 4B
 单位为mm/s/s,频带范围0.1-10Hz
 */
+
 	int ud_pgv;//单位为mm/s,频带范围0.1-10Hz
 	int ud_pgd;//
 	int ew_pga;
@@ -243,7 +273,25 @@ int
 	int ns_psa03;
 	int ns_psa10;
 	int ns_psa30;
-	char unuse[154];
+	int ol_data;//TODO
+
+	int final_PGA;
+	int final_PGV;
+	int final_PGD;
+
+	int ud_psv03;
+	int ud_psv10;
+	int ud_psv30;
+	int ew_psv03;
+	int ew_psv10;
+	int ew_psv30;
+	int ns_psv03;
+	int ns_psv10;
+	int ns_psv30;
+
+
+
+	char unuse[102];
 }__attribute__ ((packed,aligned(1)))IWS_UP_TI;
 
 
@@ -291,7 +339,8 @@ int
 	int ns_psa03;
 	int ns_psa10;
 	int ns_psa30;
-	char unuse[154];
+	int ol_data;//TODO
+	char unuse[150];
 }__attribute__ ((packed,aligned(1)))IWS_UP_YJ;
 
 
@@ -560,7 +609,11 @@ typedef struct IWS_SERVER{//服务器信息
 	int trig_endtime;
 	int is_trig_data_ready;
 	int is_trig_init;
-	unsigned char unuse[2048-120-118-88-sizeof(IWS_RQ_TIME)-sizeof(IWS_PAK_BUF)-sizeof(IWS_STEIM2)-sizeof(IWS_PARA)];
+	char ch_label[3][4];
+	int is_trig_ti_init;
+	int sig_trig_yj;
+	//unsigned char unuse[2048-132-118-92-sizeof(IWS_RQ_TIME)-sizeof(IWS_PAK_BUF)-sizeof(IWS_STEIM2)-sizeof(IWS_PARA)];//62
+	unsigned char unuse[58];
 }__attribute__ ((packed,aligned(1)))IWS_SERVER;
 
 
@@ -577,9 +630,20 @@ typedef struct IWS_FILE_LIST{//设备注册包
 	char name[256];
 }__attribute__ ((packed,aligned(1)))IWS_FILE_LIST;
 
+typedef struct IWS_LOG{//设备注册包
+	int is_log_ready;
+	char logstr[512];
+	int len;
+}__attribute__ ((packed,aligned(1)))IWS_LOG;
 
-
-
-
+typedef struct IWS_LOG_FRAME{//设备注册包
+	FILE * fp;
+	char file[64];
+	char path[256];
+	int file_index;
+	int is_file_open;
+	int count;
+	IWS_LOG iws_log[100];
+}__attribute__ ((packed,aligned(1)))IWS_LOG_FRAME;
 
 #endif

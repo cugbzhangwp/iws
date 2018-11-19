@@ -7430,8 +7430,94 @@ typedef struct IWS_STEIM2{//
 	int change_c;
 }__attribute__ ((packed,aligned(1)))IWS_STEIM2;
 */
-
 extern short d_d_d_d;
+int iws_do_yj_pre(BAND_PASS_RESULT *band_pass_data)
+{
+
+	//printf(CYAN"utc_time_imt[0]=%d,utc_time_imt[1]=%d\n"NONE,utc_time_imt[0],utc_time_imt[1]);
+
+/*
+	int ud_pga;//UD向PGA
+	int ud_pgv;//单位为mm/s,频带范围0.1-10Hz
+	int ud_pgd;//
+	int ew_pga;
+	int ew_pgv;
+	int ew_pgd;
+	int ns_pga;
+	int ns_pgv;
+	int ns_pgd;
+	short cdv;//Column degree value
+	int ud_psa03;
+	int ud_psa10;
+	int ud_psa30;
+	int ew_psa03;
+	int ew_psa10;
+	int ew_psa30;
+	int ns_psa03;
+	int ns_psa10;
+	int ns_psa30;
+
+
+
+
+
+
+
+
+	long utc_second_final_PGA; //utc时间秒                最终PGA
+	long utc_nanosecond_final_PGA; //utc时间纳秒          最终PGA
+	long utc_second_final_PGV; //utc时间秒                最终PGV
+	long utc_nanosecond_final_PGV; //utc时间纳秒          最终PGV
+	long utc_second_final_PGD; //utc时间秒                最终PGD
+	long utc_nanosecond_final_PGD; //utc时间纳秒          最终PGD
+
+
+	//float data[5]; //原始数据
+	//float dataV[5];//速度数据
+	//float dataD[5];//位移数据
+
+
+	//float band_pass_data1[5];//中间带通数据
+	//float band_pass_dataD1[5];//中间带通数据
+	//float band_pass_dataV1[5];//中间带通数据
+
+	//float band_pass_dataV[5];//带通后速度数据
+	//float band_pass_dataD[5];//带通后位移数据
+	//float band_pass_data[5];//带通后加速度数据
+
+
+	//float instant_PGA;//瞬时PGA
+	//float instant_PGV;//瞬时PGV
+	//float instant_PGD;//瞬时PGD
+
+	//float final_PGA;//最终的PGA
+	//float final_PGV;//最终的PGV
+	//float final_PGD;//最终的PGD
+
+
+	float final_PGA;//最终的PGA
+	float final_PGV;//最终的PGV
+	float final_PGD;//最终的PGD
+
+
+	float final_PGA_component[3];//最终的PGA
+	float final_PGV_component[3];//最终的PGV
+	float final_PGD_component[3];//最终的PGD
+
+
+*/
+	app.iws_cilnet_psv.ud_pga=band_pass_data->final_PGA_component[2];
+	app.iws_cilnet_psv.ud_pgv=band_pass_data->final_PGV_component[2];
+	app.iws_cilnet_psv.ud_pgd=1000*band_pass_data->final_PGD_component[2];
+	app.iws_cilnet_psv.ew_pga=band_pass_data->final_PGA_component[0];
+	app.iws_cilnet_psv.ew_pgv=band_pass_data->final_PGV_component[0];
+	app.iws_cilnet_psv.ew_pgd=1000*band_pass_data->final_PGD_component[0];
+	app.iws_cilnet_psv.ns_pga=band_pass_data->final_PGA_component[1];
+	app.iws_cilnet_psv.ns_pgv=band_pass_data->final_PGV_component[1];
+	app.iws_cilnet_psv.ns_pgd=1000*band_pass_data->final_PGD_component[1];
+
+}
+
 
 int iws_do_trig_pre(BAND_PASS_RESULT *band_pass_data,float * result,int final_liedu_pga,long * utc_time_imt,float sta_lta,int rela_t)
 {
@@ -7511,13 +7597,13 @@ int iws_do_trig_pre(BAND_PASS_RESULT *band_pass_data,float * result,int final_li
 	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ud_pga=band_pass_data->final_PGA_component[2];
 	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ud_pgv=band_pass_data->final_PGV_component[2];
 	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ud_pgd=1000*band_pass_data->final_PGD_component[2];
-	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ew_pga=band_pass_data->final_PGA_component[1];
-	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ew_pgv=band_pass_data->final_PGV_component[1];
-	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ew_pgd=1000*band_pass_data->final_PGD_component[1];
-	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ns_pga=band_pass_data->final_PGA_component[0];
-	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ns_pgv=band_pass_data->final_PGV_component[0];
-	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ns_pgd=1000*band_pass_data->final_PGD_component[0];
-	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ns_psa03=result[0];
+	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ew_pga=band_pass_data->final_PGA_component[0];
+	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ew_pgv=band_pass_data->final_PGV_component[0];
+	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ew_pgd=1000*band_pass_data->final_PGD_component[0];
+	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ns_pga=band_pass_data->final_PGA_component[1];
+	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ns_pgv=band_pass_data->final_PGV_component[1];
+	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ns_pgd=1000*band_pass_data->final_PGD_component[1];	
+	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ns_psa03=result[0];	
 	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ns_psa10=result[1];
 	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ns_psa30=result[2];
 	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ew_psa03=result[3];
@@ -7532,8 +7618,44 @@ int iws_do_trig_pre(BAND_PASS_RESULT *band_pass_data,float * result,int final_li
 	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].sta_lta=(int)(sta_lta+0.5);
 	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].rt_s=(int)(rela_t);
 	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].imd=d_d_d_d;
-
+	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].final_PGA=band_pass_data->final_PGA;
+	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].final_PGV=band_pass_data->final_PGV;
+	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].final_PGD=1000*band_pass_data->final_PGD;
+	return 0;
 }
+
+
+
+int iws_do_trig_psv_pre(float * result)
+{
+	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ns_psv03=result[0];	
+	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ns_psv10=result[1];
+	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ns_psv30=result[2];
+	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ew_psv03=result[3];
+	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ew_psv10=result[4];
+	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ew_psv30=result[5];
+	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ud_psv03=result[6];
+	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ud_psv10=result[7];
+	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].ud_psv30=result[8];
+	return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 int get_imt(FIR_LIST *list,long * imt,long * trig_start)
 {
@@ -7634,7 +7756,7 @@ int debug_print_psa_para(FIR_LIST *i_list,float sample_rata,float zuni,float *pe
 }
 
 //int psa_struct_2(FIR_LIST *i_list,float sample_rata,float zuni,float *period,float *result,double *dx,double *x2,double *y0,double *y1,int *first)
-int psa_struct_2(FIR_LIST *i_list,float sample_rata,float zuni,float *period,float *result,double *dx,double *x2,double *y0,double *y1,int *first)
+int psa_struct_2(FIR_LIST *i_list,float sample_rata,float zuni,float *period,float *result,double *dx,double *x2,double *y0,double *y1,int *first,float *mean)
 	{
 	int j,i,k,kkk;
 	double dp,z,w,xt,c1,c2,c3,dx0,sa2,y2;
@@ -7663,11 +7785,11 @@ int psa_struct_2(FIR_LIST *i_list,float sample_rata,float zuni,float *period,flo
 				{
 					//alg_locat();
 
-				dx[kkk*3+j]=i_list->band_pass_data[kkk];//*
+				dx[kkk*3+j]=i_list->band_pass_data[kkk]-mean[kkk];//*
 				//alg_locat();
-				x2[kkk*3+j]=i_list->band_pass_data[kkk];//*
+				x2[kkk*3+j]=i_list->band_pass_data[kkk]-mean[kkk];//*
 				y0[kkk*3+j]=0.0;//*
-				y1[kkk*3+j]=c3*i_list->band_pass_data[kkk];//*
+				y1[kkk*3+j]=c3*(i_list->band_pass_data[kkk]-mean[kkk]);//*
 
 
 				}
@@ -7783,7 +7905,7 @@ int psa_struct_2_main()
 
 	for(i=100;i<900;i++)
 		{
-		psa_struct_2(&ssdata[i],sample_rata,zuni,&period[0],&result1[0][0],&dx[0][0],&x2[0][0],&y0[0][0],&y1[0][0],&first);
+		//psa_struct_2(&ssdata[i],sample_rata,zuni,&period[0],&result1[0][0],&dx[0][0],&x2[0][0],&y0[0][0],&y1[0][0],&first);
 		}
 
 
