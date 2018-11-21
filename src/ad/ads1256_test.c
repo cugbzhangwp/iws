@@ -2168,19 +2168,37 @@ int fengle()
 		case 200:
 		//printf(GREEN"function：%s,line:%d\n"NONE,__FUNCTION__,__LINE__);
 		if(app.iws_para.filter_chose==0){
-			firlen=301;
+			firlen=361;
 		}
-		else{
+		else if(app.iws_para.filter_chose==1)
+		{
+			firlen=361;
+		}
+		else if(app.iws_para.filter_chose==2||app.iws_para.filter_chose==4)
+		{
 			firlen=541;
+		}
+		else if(app.iws_para.filter_chose==3||app.iws_para.filter_chose==5)
+		{
+           firlen=541;
 		}
 		
 		break;
 		case 100:
 		if(app.iws_para.filter_chose==0){
-			firlen=191;
+			firlen=181;
 		}
-		else{
+		else if(app.iws_para.filter_chose==1)
+		{
+			firlen=181;
+		}
+		else if(app.iws_para.filter_chose==2||app.iws_para.filter_chose==4)
+		{
 			firlen=301;
+		}
+		else if(app.iws_para.filter_chose==3||app.iws_para.filter_chose==5)
+		{
+           firlen=301;
 		}
 		
 		//printf(GREEN"function：%s,line:%d\n"NONE,__FUNCTION__,__LINE__);
@@ -2188,10 +2206,19 @@ int fengle()
 		break;
 		case 50:
 		if(app.iws_para.filter_chose==0){
-			firlen=81;
+			firlen=91;
 		}
-		else{
+		else if(app.iws_para.filter_chose==1)
+		{
+			firlen=91;
+		}
+		else if(app.iws_para.filter_chose==2||app.iws_para.filter_chose==4)
+		{
 			firlen=151;
+		}
+		else if(app.iws_para.filter_chose==3||app.iws_para.filter_chose==5)
+		{
+           firlen=151;
 		}
 		
 		//printf(GREEN"function：%s,line:%d\n"NONE,__FUNCTION__,__LINE__);
@@ -2850,14 +2877,21 @@ int async_alg_main_v20(APP_S *app)//Òì²½Ëã·¨´¦Àí¹ý³Ì
 					}
 					else{
 						int pga_ret;                                                   //FENG BIAO_11_12
-						band_passstruct11_11(fir_list_async,app->iws_para.filter_chose,x_y_z,mean);       //FENG BIAO_11_12 ¼ÆËãÐÂµãµÄ dataV dataD ÒÔ¼° band_passÊý¾Ý
+						//band_passstruct11_11(fir_list_async,app->iws_para.filter_chose,x_y_z,mean);       //FENG BIAO_11_12 ¼ÆËãÐÂµãµÄ dataV dataD ÒÔ¼° band_passÊý¾Ý
+						band_passstruct22_22(fir_list_async,app->iws_para.filter_chose,x_y_z,mean);       //FENG BIAO_11_12 ¼ÆËãÐÂµãµÄ dataV dataD ÒÔ¼° band_passÊý¾Ý
 
 						if(alg_pre_coutn_resample%((int)(app->app_para.fs))==0)
 						{
 						// printf("iws_trig_pgaget.trig= %d GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG\n",iws_trig_pgaget.trig);
 						// printf("slt_llt= %f      fffffffffffffffffffffffffffffffffffffffffffffffffff\n",p_result);
-						}
-						pga_ret=PGA_V_G_11_11(fir_list_async,\
+						}//PGA_V_G_22_22
+						//pga_ret=PGA_V_G_11_11(fir_list_async,\
+							&(iws_trig_pgaget.band_pass_data),\
+							&(iws_trig_pgaget.countt),\
+							1,&(iws_trig_pgaget.trig),\
+							iws_trig_pgaget.PGV_type,\
+							app->iws_para.filter_chose);
+						pga_ret=PGA_V_G_22_22(fir_list_async,\
 							&(iws_trig_pgaget.band_pass_data),\
 							&(iws_trig_pgaget.countt),\
 							1,&(iws_trig_pgaget.trig),\
@@ -3039,7 +3073,7 @@ int async_alg_main_v20(APP_S *app)//Òì²½Ëã·¨´¦Àí¹ý³Ì
 								if(app->is_trig_start==0){//¿ªÆô´¥·¢´¦Àí¹ý³Ì             Ê×´Î´¥·¢
 									init_psa(&iws_trig_psaget);
 									init_pga(&iws_trig_pgaget);
-									d_d_d_d=first_direction(fir_list_async,2,app->iws_para.firlen);//chu dong fang xiang
+									d_d_d_d=first_direction_22(fir_list_async,1.5,app->iws_para.firlen);//chu dong fang xiang
 									sta_lta=p_result;
 									get_imt(fir_list_async,iws_trig_psaget.utc_time_imt,iws_trig_psaget.trig_start);
 									app->evt_record.utc_time[0]=iws_trig_psaget.trig_start[0];
@@ -3087,14 +3121,15 @@ int async_alg_main_v20(APP_S *app)//Òì²½Ëã·¨´¦Àí¹ý³Ì
 									// printf(YELLOW"before date_time.tv_sec=%d,date_time.tv_nsec=%d\n"NONE,date_time.tv_sec,date_time.tv_nsec);
 									for(i=0;i<3*app->app_para.fs+20;i++)
 										{
-											band_passstruct11_11(now_i_fir_list,app->iws_para.filter_chose,x_y_z,mean);         //FENG BIAO_11_12 ¼ÆËãÐÂµãµÄ dataV dataD ÒÔ¼° band_passÊý¾Ý
+											//band_passstruct11_11(now_i_fir_list,app->iws_para.filter_chose,x_y_z,mean);         //FENG BIAO_11_12 ¼ÆËãÐÂµãµÄ dataV dataD ÒÔ¼° band_passÊý¾Ý
+											band_passstruct22_22(now_i_fir_list,app->iws_para.filter_chose,x_y_z,mean);         //FENG BIAO_11_12 ¼ÆËãÐÂµãµÄ dataV dataD ÒÔ¼° band_passÊý¾Ý
 											now_i_fir_list=now_i_fir_list->last;					                      //FENG BIAO_11_12 ¼ÆËãPGA PGV PGD										
 										}
 									// clock_gettime(CLOCK_REALTIME, &date_time);
 									// printf(YELLOW"after date_time.tv_sec=%d,date_time.tv_nsec=%d\n"NONE,date_time.tv_sec,date_time.tv_nsec);
 									//exit(0);
 									iws_trig_pgaget.trig=1;
-									PGA_V_G_11_11(fir_list_async,&(iws_trig_pgaget.band_pass_data),&(iws_trig_pgaget.countt),1,&(iws_trig_pgaget.trig),iws_trig_pgaget.PGV_type,app->iws_para.filter_chose);													  //FENG BIAO_11_12 ;  
+									PGA_V_G_22_22(fir_list_async,&(iws_trig_pgaget.band_pass_data),&(iws_trig_pgaget.countt),1,&(iws_trig_pgaget.trig),iws_trig_pgaget.PGV_type,app->iws_para.filter_chose);													  //FENG BIAO_11_12 ;  
 									//¼ÆËã3ÃëµÄPGA£¬PGV£¬PGD                                     
 									  //ÕâÀïÓ¦¸Ã·¢ËÍÐÅÏ¢
 									printf("send yujing xinxi  iws_trig_pgaget.trig=%f\n\n\n",iws_trig_pgaget.trig);
@@ -3845,7 +3880,8 @@ static inline int read_data_setch_interupt_async(int tid)
 						//float aaa=1.07*app.buffer.databuf[LOOPREAD]->data_start[tmp].ad_data;
 						//ad=3927206,fir_list1=-1559.697144
 
-						fir_list1->data[app.app_para.ad_ch_select]=/*9.8*/5.444444444444444*((aaa*2.5*2.0)/(1.7474*0x494008*app.app_para.gain)*1000/*-2500*/);//5*app.buffer.databuf[LOOPREAD]->data_start[tmp].ad_data/8388607;
+/*344*/					//fir_list1->data[app.app_para.ad_ch_select]=/*9.8*//*1.361*15.68*/9.8*1.361*((aaa*2.5*2.0)/(1.7474*0x494008*app.app_para.gain)*1000/*-2500*/);//5*app.buffer.databuf[LOOPREAD]->data_start[tmp].ad_data/8388607;
+/*1002a	*/				fir_list1->data[app.app_para.ad_ch_select]=/*9.8*/5.4495912806*1.0584810795*((aaa*2.5*2.0)/(1.7474*0x494008*app.app_para.gain)*1000/*-2500*/);//1002A 5*app.buffer.databuf[LOOPREAD]->data_start[tmp].ad_data/8388607;
 						//printf("app.app_para.ad_ch_select=%d,ad=%d,fir_list1=%f\n",app.app_para.ad_ch_select,aaa,fir_list1->data[app.app_para.ad_ch_select]);
 
 						//printf("tmp=%d\n",tmp);
@@ -3862,7 +3898,13 @@ static inline int read_data_setch_interupt_async(int tid)
 						//fprintf(fp,"app.ad_count.read_times=%d\n",app.ad1256.ad_count.read_times);	
 					}
 					else{//空采通道,完成一次采样
+						// fir_list1->data[2]=-fir_list1->data[2]-9800;
+						// fir_list1->data[0]=-fir_list1->data[0];
+						// fir_list1->data[1]=-fir_list1->data[1];
+						//344
 						fir_list1->data[2]=-fir_list1->data[2]-9800;
+						fir_list1->data[0]=-fir_list1->data[0];
+						fir_list1->data[1]=-fir_list1->data[1];
 						//fir_list1->data[2]=fir_list1->data[2]-9800;//TODO
 				        pthread_mutex_lock(&(app.app_mut[MUTEX_LOCK_IS_CAN_ALG]));
 				        	app.app_sig.sig_can_alg++;

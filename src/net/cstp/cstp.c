@@ -329,8 +329,10 @@ int init_iws_reg_pak(IWS_REGISTER * iws_reg_pak,int server_index)
     }
     for(ifor=0;ifor<32;ifor++)
     {
-         iws_reg_pak->key[ifor]=app.iws_server[server_index].server_key[ifor];   
+         iws_reg_pak->key[ifor]=app.iws_server[server_index].server_key[ifor];
+         printf(LIGHT_CYAN"%d-%c-%X "NONE,ifor,app.iws_server[server_index].server_key[ifor],app.iws_server[server_index].server_key[ifor]);  
     }
+    printf("/n");
     // for(ifor=7;ifor<15;ifor++)
     // {
     //      iws_reg_pak->key[ifor]=serv_psd[ifor];//app.iws_server[server_index].server_key[ifor];   
@@ -949,6 +951,7 @@ printf(CYAN"inside function %s line:%d\n"NONE,__FUNCTION__,__LINE__);
                     {
                         printf(YELLOW"%d:%02X-%c "NONE,ifor,p_re[ifor],p_re[ifor]);
                     }
+    
 /*
         char *p=&app->iws_cstp[connect_index].iws_up_wavedata;
         for(ifor=0;ifor<realread;ifor++)
@@ -2162,7 +2165,7 @@ int steim2_mk_wave_pak(IWS_UP_WAVEDATA * iws_up_wavedata,IWS_STEIM2_OUT * steim2
         memcpy(&iws_up_wavedata->data[0],&steim2_buf->out[0],192);
         iws_up_wavedata->wcts[1]='C';
         iws_up_wavedata->data_start_utc.u_sec=(unsigned int)(steim2_buf->utc_time[1]/100000);
-        if(app.iws_server_share.status.is_clock_sync_ntp==1){
+        if(app.iws_server_share.status.is_clock_sync_ntp==0){
             iws_up_wavedata->iotm=0x20;
         }
         else{
@@ -2622,6 +2625,23 @@ int write_evt_to_file(APP_S * app,IWS_UP_WAVEDATA *evt_wave_pak)
 
 }
 
+
+int write_evt_ti_to_file(APP_S * app,IWS_UP_TI * iws_up_ti,int server_index)
+{
+    if(app->evt_record.is_file_open==1&&app->evt_record.fp!=NULL)
+    {
+        return writedata(iws_up_ti,sizeof(IWS_UP_TI),app->evt_record.fp);
+
+    }
+
+}
+
+
+
+
+
+
+
 int start_record_event(APP_S * app)
 {
     char url[256];
@@ -2861,7 +2881,9 @@ int iws_write_process_v20(int fid,int connect_index,APP_S * app)//写处理框�
         app->iws_server[connect_index].sig_trig_ti--;
         steim2_mk_trig_ti_pak(&app->iws_cstp[connect_index].iws_up_ti,++(app->iws_cstp[connect_index].pak_num));
         mk_trig_ti_check(&app->iws_cstp[connect_index].iws_up_ti,connect_index);
+
         realsend+=writenbytes(&app->iws_cstp[connect_index].iws_up_ti,fid,256);
+        write_evt_ti_to_file(app,&app->iws_cstp[connect_index].iws_up_ti,connect_index);
         //debug_buf((char *)&app->iws_cstp[connect_index].iws_up_ti,256,"ti:");
     }
     if((app->iws_server[connect_index].sig_status>0)&&(app->iws_server[connect_index].mode>1))//

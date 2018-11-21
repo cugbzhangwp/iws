@@ -7618,6 +7618,9 @@ int iws_do_trig_pre(BAND_PASS_RESULT *band_pass_data,float * result,int final_li
 	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].sta_lta=(int)(sta_lta+0.5);
 	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].rt_s=(int)(rela_t);
 	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].imd=d_d_d_d;
+
+
+	
 	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].final_PGA=band_pass_data->final_PGA;
 	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].final_PGV=band_pass_data->final_PGV;
 	app.iws_up_ti[app.app_sig.sig_trig_ti_write_buf].final_PGD=1000*band_pass_data->final_PGD;

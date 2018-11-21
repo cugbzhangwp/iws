@@ -105,15 +105,15 @@ int atcmd_setad(char * buf,int length)
 		case 0xB0:
 		//printf(GREEN"function：%s,line:%d\n"NONE,__FUNCTION__,__LINE__);
 		fs=200;
-		firlen=67;
+		//firlen=67;
 		break;
 		case 0xa1:
 		//printf(GREEN"function：%s,line:%d\n"NONE,__FUNCTION__,__LINE__);
 		fs=100;
-		firlen=83;
+		//firlen=83;
 		break;
 		case 0x92:
-		firlen=165;
+		//firlen=165;
 		//printf(GREEN"function：%s,line:%d\n"NONE,__FUNCTION__,__LINE__);
 		fs=50;
 		break;
@@ -124,7 +124,80 @@ int atcmd_setad(char * buf,int length)
 		break;
 
 	}
+
+	switch(fs)
+	{
+		case 200:
+		//printf(GREEN"function：%s,line:%d\n"NONE,__FUNCTION__,__LINE__);
+			if(app.iws_para.filter_chose==0){
+				firlen=361;
+			}
+			else if(app.iws_para.filter_chose==1)
+			{
+				firlen=361;
+			}
+			else if(app.iws_para.filter_chose==2||app.iws_para.filter_chose==4)
+			{
+				firlen=541;
+			}
+			else if(app.iws_para.filter_chose==3||app.iws_para.filter_chose==5)
+			{
+	           firlen=541;
+			}
+			
+		break;
+		case 100:
+			if(app.iws_para.filter_chose==0){
+				firlen=181;
+			}
+			else if(app.iws_para.filter_chose==1)
+			{
+				firlen=181;
+			}
+			else if(app.iws_para.filter_chose==2||app.iws_para.filter_chose==4)
+			{
+				firlen=301;
+			}
+			else if(app.iws_para.filter_chose==3||app.iws_para.filter_chose==5)
+			{
+	           firlen=301;
+			}
+			
+			//printf(GREEN"function：%s,line:%d\n"NONE,__FUNCTION__,__LINE__);
+			
+		break;
+		case 50:
+			if(app.iws_para.filter_chose==0){
+				firlen=91;
+			}
+			else if(app.iws_para.filter_chose==1)
+			{
+				firlen=91;
+			}
+			else if(app.iws_para.filter_chose==2||app.iws_para.filter_chose==4)
+			{
+				firlen=151;
+			}
+			else if(app.iws_para.filter_chose==3||app.iws_para.filter_chose==5)
+			{
+	           firlen=151;
+			}
+			
+		//printf(GREEN"function：%s,line:%d\n"NONE,__FUNCTION__,__LINE__);
+		break;
+		default:
+		break;
+	}
+
+
+
+
+
+
+
+
 	app.app_para.fs=fs;
+	app.iws_para.firlen=firlen;
 	app.app_para.ad_reg.reg[3]=0xB0;
 	app.app_sig.sig_setad_request=1;
 	
@@ -830,6 +903,7 @@ int atcmd_setsid(char * buf,int length)
 
 	int ret=sscanf(buf,"%d,%[^,],%[^,],%[^,],%[^,],%[^,]",&index,sid,key,ch1,ch2,ch3);
 	int ifor;
+	memset(app.iws_server[index].server_key,0,36);
 	snprintf(app.iws_server[index].sid,16,"%s",sid);
 	snprintf(app.iws_server[index].server_key,36,"%s",key);
 	snprintf(app.iws_server[index].ch_label[0],4,"%s",ch1);
@@ -990,7 +1064,15 @@ int atcmd_getcid(char * buf,int length)
 	return 0;
 }
 
-
+int atcmd_getver(char * buf,int length)
+{
+	snprintf(sendbuf,512,"%s",app.compiler_time);
+	printf("============================%s\n",sendbuf);
+	sendlen=strlen(sendbuf);
+	sendbuf[sendlen++]=0x0d;
+	sendbuf[sendlen++]=0x0a;
+	return 0;
+}
 
 
 
@@ -1081,6 +1163,7 @@ AT_CMD_CALL iws_atcmd[]={
 	//{"GETCID",atcmd_getcid},////get channel id
 	{"SETXZ",atcmd_setxuanzhuan},
 	{"GETXZ",atcmd_getxuanzhuan},
+	{"GETVER",atcmd_getver},
 
 
 };
